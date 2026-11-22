@@ -63,40 +63,29 @@
 - `bookings` — заявки на бронирование (пользователь, рабочее место, дата/время начала и окончания, сумма, статус)
 - `email_confirmations` — токены подтверждения учетных записей
 
-## Сборка и запуск
+## Установка и запуск
 
-Для работы приложения требуются:
-- операционная система Windows 10/11, Linux или macOS;
-- .NET 9.0 SDK;
-- СУБД MySQL Server 8.0.
+Для работы требуются [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) и СУБД MySQL 8.0.
 
-### 1. Подготовка базы данных
-Выполнить инициализирующие скрипты в СУБД MySQL:
+1. **Создать и наполнить базу данных MySQL:**
+   ```bash
+   mysql -u root -p < db/schema.sql
+   mysql -u root -p < db/seed.sql
+   ```
 
-```bash
-mysql -u root -p < db/schema.sql
-mysql -u root -p < db/seed.sql
-```
+2. **Настроить подключение к базе данных:**  
+   В `src/Coworking/appsettings.json` указать строку подключения к локальной СУБД:
+   ```json
+   "ConnectionStrings": {
+     "DefaultConnection": "Server=localhost;Port=3306;Database=coworking;User ID=root;Password=your_password;CharSet=utf8mb4;"
+   }
+   ```
 
-### 2. Настройка подключения
-В файле конфигурации `src/Coworking/appsettings.json` (или `src/Coworking/appsettings.Development.json`) указать параметры подключения к локальной СУБД:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Port=3306;Database=coworking;User ID=coworking_app;Password=123;CharSet=utf8mb4;"
-  }
-}
-```
-
-### 3. Запуск веб-приложения
-
-```bash
-dotnet restore src/Coworking/Coworking.csproj
-dotnet run --project src/Coworking/Coworking.csproj
-```
-
-После запуска приложение доступно по адресу `http://localhost:5000` (или порту, назначенному средой выполнения).
+3. **Запустить проект:**
+   ```bash
+   dotnet run --project src/Coworking/Coworking.csproj
+   ```
+   Приложение откроется по адресу `http://localhost:5000`.
 
 ## Тестовые аккаунты
 
