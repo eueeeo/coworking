@@ -1,0 +1,155 @@
+@page
+@model Coworking.Pages.Admin.Amenities.IndexModel
+@{
+    ViewData["Title"] = "Управление удобствами";
+    var isFormOpen = Model.EditAmenityId.HasValue || !ViewData.ModelState.IsValid;
+}
+
+<div class="admin-header-wrap">
+    <div>
+        <h2 class="page-title">Удобства и оснащение</h2>
+        <p class="page-sub">Категории и варианты оснащения рабочих мест</p>
+    </div>
+</div>
+
+<partial name="_AdminSubnav" model='"Amenities"' />
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert-custom alert-success-custom">
+        <span>@Model.SuccessMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert-custom alert-danger-custom">
+        <span>@Model.ErrorMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <button type="button" class="btn-ink" onclick="toggleAdminPanel(this, 'amenityFormPanel')">
+        @(isFormOpen ? "Скрыть форму" : "+ Добавить удобство или категорию")
+    </button>
+</div>
+
+<div id="amenityFormPanel" class="mb-4" style="@(isFormOpen ? "" : "display:none;")">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="admin-card-form h-100 mb-0">
+                <h4 class="admin-card-title">
+                    @(Model.EditAmenityId.HasValue ? "Редактирование удобства" : "Новое удобство")
+                </h4>
+                <form method="post" asp-page-handler="SaveAmenity">
+                    @if (Model.EditAmenityId.HasValue)
+                    {
+                        <input type="hidden" asp-for="EditAmenityId" />
+                    }
+                    <div class="mb-3">
+                        <label asp-for="AmenityInput.CategoryId" class="form-label-custom">Категория удобства *</label>
+                        <select asp-for="AmenityInput.CategoryId" asp-items="Model.CategoryList" class="form-select">
+                            <option value="">-- Выберите категорию --</option>
+                        </select>
+                        <span asp-validation-for="AmenityInput.CategoryId" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="AmenityInput.Name" class="form-label-custom">Название удобства *</label>
+                        <input asp-for="AmenityInput.Name" class="form-control" placeholder="Например: Монитор 27'' 4K" />
+                        <span asp-validation-for="AmenityInput.Name" class="text-danger small"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn-ink">
+                            @(Model.EditAmenityId.HasValue ? "Сохранить изменения" : "Добавить удобство")
+                        </button>
+                        @if (Model.EditAmenityId.HasValue)
+                        {
+                            <a asp-page="/Admin/Amenities/Index" class="btn-outline-ink">Отмена</a>
+                        }
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="admin-card-form h-100 mb-0">
+                <h4 class="admin-card-title">Новая категория</h4>
+                <form method="post" asp-page-handler="AddCategory">
+                    <div class="mb-3">
+                        <label asp-for="CategoryInput.Name" class="form-label-custom">Название категории *</label>
+                        <input asp-for="CategoryInput.Name" class="form-control" placeholder="Например: Оборудование" />
+                    </div>
+                    <button type="submit" class="btn-outline-ink">Создать категорию</button>
+                </form>
+
+                <div class="mt-4 pt-3 border-top">
+                    <div class="filter-label mb-2">Существующие категории:</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var c in Model.Categories)
+                        {
+                            <span class="badge bg-light text-dark border p-2 d-inline-flex align-items-center gap-2">
+                                <span>@c.Name (@c.Amenities.Count)</span>
+                                @if (!c.Amenities.Any())
+                                {
+                                    <form method="post" asp-page-handler="DeleteCategory" asp-route-id="@c.Id" class="d-inline">
+                                        <button type="submit" class="btn-close" style="font-size: .65rem;" title="Удалить категорию"></button>
+                                    </form>
+                                }
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="data-table-wrap">
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Название удобства</th>
+                    <th>Категория</th>
+                    <th>Используется в местах</th>
+                    <th style="width: 170px; text-align: right;">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var a in Model.Amenities)
+                {
+                    <tr>
+                        <td>
+                            <strong style="color: var(--ink);">@a.Name</strong>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@a.CategoryName</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@a.WorkspacesCount мест</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="d-inline-flex gap-1">
+                                <a asp-page="/Admin/Amenities/Index" asp-route-editAmenityId="@a.Id" class="btn btn-outline-primary btn-sm">
+                                    Изменить
+                                </a>
+                                <form method="post" asp-page-handler="DeleteAmenity" asp-route-id="@a.Id"
+                                      onsubmit="return confirm('Вы уверены, что хотите удалить удобство «@a.Name»?');" class="d-inline">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

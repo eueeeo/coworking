@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1330 700" width="1330" height="700">
+  <defs>
+    <style>
+      .tbl-bg { fill: #ffffff; stroke: #000000; stroke-width: 1; }
+      .tbl-header-line { stroke: #000000; stroke-width: 1; }
+      .tbl-col-line { stroke: #000000; stroke-width: 1; }
+      .tbl-pk-line { stroke: #000000; stroke-width: 1; }
+      .tbl-title { font-family: "Segoe UI", Arial, sans-serif; font-size: 13px; font-weight: bold; fill: #000000; text-anchor: middle; dominant-baseline: middle; }
+      .key-tag { font-family: "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: bold; fill: #000000; text-anchor: middle; dominant-baseline: middle; }
+      .attr-pk { font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; font-weight: bold; fill: #000000; dominant-baseline: middle; }
+      .attr-reg { font-family: "Segoe UI", Arial, sans-serif; font-size: 12px; font-weight: normal; fill: #000000; dominant-baseline: middle; }
+      .rel-line { stroke: #000000; stroke-width: 1; fill: none; stroke-linecap: square; stroke-linejoin: miter; }
+      .cardinality { font-family: "Segoe UI", Arial, sans-serif; font-size: 11px; font-weight: bold; fill: #000000; }
+    </style>
+  </defs>
+  <rect x="0" y="0" width="1330" height="700" fill="#ffffff" />
+    <polyline points="175,107.0 200,107.0 200,129.0 235,129.0" class="rel-line" />
+  <text x="181" y="102.0" class="cardinality">1</text>
+  <text x="221" y="124.0" class="cardinality">M</text>
+    <polyline points="360,107.0 415,107.0 415,239.0 440,239.0" class="rel-line" />
+  <text x="366" y="102.0" class="cardinality">1</text>
+  <text x="426" y="234.0" class="cardinality">M</text>
+    <polyline points="380,267.0 395,267.0 395,261.0 440,261.0" class="rel-line" />
+  <text x="386" y="262.0" class="cardinality">1</text>
+  <text x="426" y="256.0" class="cardinality">M</text>
+    <polyline points="205,527.0 220,527.0 220,549.0 235,549.0" class="rel-line" />
+  <text x="211" y="522.0" class="cardinality">1</text>
+  <text x="221" y="544.0" class="cardinality">M</text>
+    <polyline points="360,527.0 400,527.0 400,571.0 440,571.0" class="rel-line" />
+  <text x="366" y="522.0" class="cardinality">1</text>
+  <text x="426" y="566.0" class="cardinality">M</text>
+    <polyline points="585,221.0 635,221.0 635,549.0 620,549.0" class="rel-line" />
+  <text x="600" y="234.0" class="cardinality">1</text>
+  <text x="626" y="544.0" class="cardinality">M</text>
+    <polyline points="585,213.0 760,213.0 760,421.0 800,421.0" class="rel-line" />
+  <text x="600" y="208.0" class="cardinality">1</text>
+  <text x="786" y="416.0" class="cardinality">M</text>
+    <polyline points="1070,107.0 1000,107.0 1000,119.0 945,119.0" class="rel-line" />
+  <text x="1056" y="102.0" class="cardinality">1</text>
+  <text x="951" y="131.0" class="cardinality">M</text>
+    <polyline points="800,97.0 775,97.0 775,399.0 800,399.0" class="rel-line" />
+  <text x="786" y="92.0" class="cardinality">1</text>
+  <text x="786" y="394.0" class="cardinality">M</text>
+    <polyline points="800,627.0 775,627.0 775,443.0 800,443.0" class="rel-line" />
+  <text x="786" y="622.0" class="cardinality">1</text>
+  <text x="786" y="438.0" class="cardinality">M</text>
+    <polyline points="945,377.0 1070,399.0" class="rel-line" />
+  <text x="951" y="372.0" class="cardinality">1</text>
+  <text x="1056" y="394.0" class="cardinality">M</text>
+    <polyline points="940,627.0 1030,627.0 1030,421.0 1070,421.0" class="rel-line" />
+  <text x="946" y="622.0" class="cardinality">1</text>
+  <text x="1056" y="416.0" class="cardinality">M</text>
+    <polyline points="945,97.0 975,97.0 975,30 1280,30 1280,443.0 1250,443.0" class="rel-line" />
+  <text x="951" y="92.0" class="cardinality">1</text>
+  <text x="1256" y="438.0" class="cardinality">M</text>
+    <g id="table_Floors">
+    <rect x="50" y="70" width="125" height="114" class="tbl-bg" />
+    <text x="112.5" y="83.0" class="tbl-title">Floors</text>
+    <line x1="50" y1="96" x2="175" y2="96" class="tbl-header-line" />
+    <line x1="78" y1="96" x2="78" y2="184" class="tbl-col-line" />
+    <text x="64.0" y="107.0" class="key-tag">PK</text>
+    <text x="84" y="107.0" class="attr-pk">ID_floor</text>
+    <line x1="50" y1="118" x2="175" y2="118" class="tbl-pk-line" />
+    <text x="84" y="129.0" class="attr-reg">number</text>
+    <text x="84" y="151.0" class="attr-reg">name</text>
+    <text x="84" y="173.0" class="attr-reg">description</text>
+  </g>
+    <g id="table_Amenity_categories">
+    <rect x="50" y="490" width="155" height="70" class="tbl-bg" />
+    <text x="127.5" y="503.0" class="tbl-title">Amenity_categories</text>
+    <line x1="50" y1="516" x2="205" y2="516" class="tbl-header-line" />
+    <line x1="78" y1="516" x2="78" y2="560" class="tbl-col-line" />
+    <text x="64.0" y="527.0" class="key-tag">PK</text>
+    <text x="84" y="527.0" class="attr-pk">ID_category</text>
+    <line x1="50" y1="538" x2="205" y2="538" class="tbl-pk-line" />
+    <text x="84" y="549.0" class="attr-reg">name</text>
+  </g>
+    <g id="table_Zones">
+    <rect x="235" y="70" width="125" height="114" class="tbl-bg" />
+    <text x="297.5" y="83.0" class="tbl-title">Zones</text>
+    <line x1="235" y1="96" x2="360" y2="96" class="tbl-header-line" />
+    <line x1="263" y1="96" x2="263" y2="184" class="tbl-col-line" />
+    <text x="249.0" y="107.0" class="key-tag">PK</text>
+    <text x="269" y="107.0" class="attr-pk">ID_zone</text>
+    <line x1="235" y1="118" x2="360" y2="118" class="tbl-pk-line" />
+    <text x="249.0" y="129.0" class="key-tag">FK</text>
+    <text x="269" y="129.0" class="attr-reg">ID_floor</text>
+    <text x="269" y="151.0" class="attr-reg">name</text>
+    <text x="269" y="173.0" class="attr-reg">description</text>
+  </g>
+    <g id="table_Workspace_types">
+    <rect x="235" y="230" width="145" height="114" class="tbl-bg" />
+    <text x="307.5" y="243.0" class="tbl-title">Workspace_types</text>
+    <line x1="235" y1="256" x2="380" y2="256" class="tbl-header-line" />
+    <line x1="263" y1="256" x2="263" y2="344" class="tbl-col-line" />
+    <text x="249.0" y="267.0" class="key-tag">PK</text>
+    <text x="269" y="267.0" class="attr-pk">ID_type</text>
+    <line x1="235" y1="278" x2="380" y2="278" class="tbl-pk-line" />
+    <text x="269" y="289.0" class="attr-reg">name</text>
+    <text x="269" y="311.0" class="attr-reg">description</text>
+    <text x="269" y="333.0" class="attr-reg">price_per_hour</text>
+  </g>
+    <g id="table_Amenities">
+    <rect x="235" y="490" width="125" height="92" class="tbl-bg" />
+    <text x="297.5" y="503.0" class="tbl-title">Amenities</text>
+    <line x1="235" y1="516" x2="360" y2="516" class="tbl-header-line" />
+    <line x1="263" y1="516" x2="263" y2="582" class="tbl-col-line" />
+    <text x="249.0" y="527.0" class="key-tag">PK</text>
+    <text x="269" y="527.0" class="attr-pk">ID_amenity</text>
+    <line x1="235" y1="538" x2="360" y2="538" class="tbl-pk-line" />
+    <text x="249.0" y="549.0" class="key-tag">FK</text>
+    <text x="269" y="549.0" class="attr-reg">ID_category</text>
+    <text x="269" y="571.0" class="attr-reg">name</text>
+  </g>
+    <g id="table_Workspaces">
+    <rect x="440" y="180" width="145" height="158" class="tbl-bg" />
+    <text x="512.5" y="193.0" class="tbl-title">Workspaces</text>
+    <line x1="440" y1="206" x2="585" y2="206" class="tbl-header-line" />
+    <line x1="468" y1="206" x2="468" y2="338" class="tbl-col-line" />
+    <text x="454.0" y="217.0" class="key-tag">PK</text>
+    <text x="474" y="217.0" class="attr-pk">ID_workspace</text>
+    <line x1="440" y1="228" x2="585" y2="228" class="tbl-pk-line" />
+    <text x="454.0" y="239.0" class="key-tag">FK</text>
+    <text x="474" y="239.0" class="attr-reg">ID_zone</text>
+    <text x="454.0" y="261.0" class="key-tag">FK</text>
+    <text x="474" y="261.0" class="attr-reg">ID_type</text>
+    <text x="474" y="283.0" class="attr-reg">number</text>
+    <text x="474" y="305.0" class="attr-reg">description</text>
+    <text x="474" y="327.0" class="attr-reg">is_active</text>
+  </g>
+    <g id="table_Workspace_amenities">
+    <rect x="440" y="490" width="180" height="92" class="tbl-bg" />
+    <text x="530.0" y="503.0" class="tbl-title">Workspace_amenities</text>
+    <line x1="440" y1="516" x2="620" y2="516" class="tbl-header-line" />
+    <line x1="468" y1="516" x2="468" y2="582" class="tbl-col-line" />
+    <text x="454.0" y="527.0" class="key-tag">PK</text>
+    <text x="474" y="527.0" class="attr-pk">ID_workspace_amenity</text>
+    <line x1="440" y1="538" x2="620" y2="538" class="tbl-pk-line" />
+    <text x="454.0" y="549.0" class="key-tag">FK</text>
+    <text x="474" y="549.0" class="attr-reg">ID_workspace</text>
+    <text x="454.0" y="571.0" class="key-tag">FK</text>
+    <text x="474" y="571.0" class="attr-reg">ID_amenity</text>
+  </g>
+    <g id="table_Users">
+    <rect x="800" y="60" width="145" height="224" class="tbl-bg" />
+    <text x="872.5" y="73.0" class="tbl-title">Users</text>
+    <line x1="800" y1="86" x2="945" y2="86" class="tbl-header-line" />
+    <line x1="828" y1="86" x2="828" y2="284" class="tbl-col-line" />
+    <text x="814.0" y="97.0" class="key-tag">PK</text>
+    <text x="834" y="97.0" class="attr-pk">ID_user</text>
+    <line x1="800" y1="108" x2="945" y2="108" class="tbl-pk-line" />
+    <text x="814.0" y="119.0" class="key-tag">FK</text>
+    <text x="834" y="119.0" class="attr-reg">ID_role</text>
+    <text x="834" y="141.0" class="attr-reg">last_name</text>
+    <text x="834" y="163.0" class="attr-reg">first_name</text>
+    <text x="834" y="185.0" class="attr-reg">middle_name</text>
+    <text x="834" y="207.0" class="attr-reg">email</text>
+    <text x="834" y="229.0" class="attr-reg">phone</text>
+    <text x="834" y="251.0" class="attr-reg">password_hash</text>
+    <text x="834" y="273.0" class="attr-reg">is_active</text>
+  </g>
+    <g id="table_Bookings">
+    <rect x="800" y="340" width="145" height="202" class="tbl-bg" />
+    <text x="872.5" y="353.0" class="tbl-title">Bookings</text>
+    <line x1="800" y1="366" x2="945" y2="366" class="tbl-header-line" />
+    <line x1="828" y1="366" x2="828" y2="542" class="tbl-col-line" />
+    <text x="814.0" y="377.0" class="key-tag">PK</text>
+    <text x="834" y="377.0" class="attr-pk">ID_booking</text>
+    <line x1="800" y1="388" x2="945" y2="388" class="tbl-pk-line" />
+    <text x="814.0" y="399.0" class="key-tag">FK</text>
+    <text x="834" y="399.0" class="attr-reg">ID_user</text>
+    <text x="814.0" y="421.0" class="key-tag">FK</text>
+    <text x="834" y="421.0" class="attr-reg">ID_workspace</text>
+    <text x="814.0" y="443.0" class="key-tag">FK</text>
+    <text x="834" y="443.0" class="attr-reg">ID_status</text>
+    <text x="834" y="465.0" class="attr-reg">starts_at</text>
+    <text x="834" y="487.0" class="attr-reg">ends_at</text>
+    <text x="834" y="509.0" class="attr-reg">total_cost</text>
+    <text x="834" y="531.0" class="attr-reg">created_at</text>
+  </g>
+    <g id="table_Booking_statuses">
+    <rect x="800" y="590" width="140" height="70" class="tbl-bg" />
+    <text x="870.0" y="603.0" class="tbl-title">Booking_statuses</text>
+    <line x1="800" y1="616" x2="940" y2="616" class="tbl-header-line" />
+    <line x1="828" y1="616" x2="828" y2="660" class="tbl-col-line" />
+    <text x="814.0" y="627.0" class="key-tag">PK</text>
+    <text x="834" y="627.0" class="attr-pk">ID_status</text>
+    <line x1="800" y1="638" x2="940" y2="638" class="tbl-pk-line" />
+    <text x="834" y="649.0" class="attr-reg">name</text>
+  </g>
+    <g id="table_Roles">
+    <rect x="1070" y="70" width="110" height="70" class="tbl-bg" />
+    <text x="1125.0" y="83.0" class="tbl-title">Roles</text>
+    <line x1="1070" y1="96" x2="1180" y2="96" class="tbl-header-line" />
+    <line x1="1098" y1="96" x2="1098" y2="140" class="tbl-col-line" />
+    <text x="1084.0" y="107.0" class="key-tag">PK</text>
+    <text x="1104" y="107.0" class="attr-pk">ID_role</text>
+    <line x1="1070" y1="118" x2="1180" y2="118" class="tbl-pk-line" />
+    <text x="1104" y="129.0" class="attr-reg">name</text>
+  </g>
+    <g id="table_Booking_status_history">
+    <rect x="1070" y="340" width="180" height="158" class="tbl-bg" />
+    <text x="1160.0" y="353.0" class="tbl-title">Booking_status_history</text>
+    <line x1="1070" y1="366" x2="1250" y2="366" class="tbl-header-line" />
+    <line x1="1098" y1="366" x2="1098" y2="498" class="tbl-col-line" />
+    <text x="1084.0" y="377.0" class="key-tag">PK</text>
+    <text x="1104" y="377.0" class="attr-pk">ID_history</text>
+    <line x1="1070" y1="388" x2="1250" y2="388" class="tbl-pk-line" />
+    <text x="1084.0" y="399.0" class="key-tag">FK</text>
+    <text x="1104" y="399.0" class="attr-reg">ID_booking</text>
+    <text x="1084.0" y="421.0" class="key-tag">FK</text>
+    <text x="1104" y="421.0" class="attr-reg">ID_new_status</text>
+    <text x="1084.0" y="443.0" class="key-tag">FK</text>
+    <text x="1104" y="443.0" class="attr-reg">ID_user</text>
+    <text x="1104" y="465.0" class="attr-reg">changed_at</text>
+    <text x="1104" y="487.0" class="attr-reg">comment</text>
+  </g>
+</svg>

@@ -1,0 +1,212 @@
+@page
+@model Coworking.Pages.Bookings.CreateModel
+@{
+    ViewData["Title"] = "Оформление бронирования";
+}
+
+<div class="breadcrumb-custom">
+    <a asp-page="/Index">Каталог</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Бронирование @Model.Workspace.Number</span>
+</div>
+
+<h2 class="page-title" style="margin-bottom:1.5rem;">Оформление бронирования</h2>
+
+<div class="booking-create-layout">
+    <div class="info-card">
+        <div class="info-card-header">Параметры рабочего места</div>
+        <div class="info-card-body">
+            <div class="info-row">
+                <span class="info-label">Номер места</span>
+                <span class="info-value-large">@Model.Workspace.Number</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Категория</span>
+                <span class="info-value">@Model.Workspace.WorkspaceType.Name</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Расположение</span>
+                <span class="info-value">@Model.Workspace.Zone.Floor.Name, @Model.Workspace.Zone.Name</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Тариф</span>
+                <span class="info-price" id="ratePerHour" data-rate="@Model.Workspace.WorkspaceType.PricePerHour">
+                    @Model.Workspace.WorkspaceType.PricePerHour.ToString("0.00") BYN/час
+                </span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Оснащение</span>
+                @if (Model.Workspace.WorkspaceAmenities.Any())
+                {
+                    <div class="amenity-tags" style="margin-top:.3rem;">
+                        @foreach (var wa in Model.Workspace.WorkspaceAmenities)
+                        {
+                            <span class="amenity-tag">@wa.Amenity.Name</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="info-value" style="font-weight:400;color:var(--muted);">Базовый набор</span>
+                }
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Workspace.Description))
+            {
+                <div class="info-row">
+                    <span class="info-label">Описание</span>
+                    <span class="info-value" style="font-weight:400;color:var(--muted);">@Model.Workspace.Description</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-card-header">Выбор времени и подтверждение</div>
+        <div class="info-card-body">
+            <form method="post" id="bookingForm">
+                <div asp-validation-summary="ModelOnly" class="alert-custom alert-danger-custom mb-3" role="alert"></div>
+
+                <input type="hidden" asp-for="Input.WorkspaceId" />
+
+                <div class="mb-3">
+                    <label asp-for="Input.BookingDate" class="form-label-custom">Дата бронирования</label>
+                    <input asp-for="Input.BookingDate" type="date" class="form-control-custom"
+                           id="bookingDate" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                    <span asp-validation-for="Input.BookingDate" class="text-danger small"></span>
+                </div>
+
+                <div class="schedule-preview-box mb-3">
+                    <div class="schedule-preview-header">
+                        <span class="schedule-preview-title">Занятость на выбранную дату</span>
+                        <span id="occupiedDateLabel" class="schedule-date-badge">@Model.Input.BookingDate.ToString("dd.MM.yyyy")</span>
+                    </div>
+                    <div id="occupiedSlotsContainer" class="occupied-slots-list">
+                        @if (Model.OccupiedSlots.Any())
+                        {
+                            @foreach (var slot in Model.OccupiedSlots)
+                            {
+                                <span class="slot-badge slot-occupied">Занято: @slot.TimeRange</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="slot-badge slot-free">Место свободно на весь день</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Input.StartTime" class="form-label-custom">Время начала</label>
+                        <input asp-for="Input.StartTime" type="time" class="form-control-custom"
+                               id="startTime" step="1800" />
+                        <span asp-validation-for="Input.StartTime" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Input.EndTime" class="form-label-custom">Время окончания</label>
+                        <input asp-for="Input.EndTime" type="time" class="form-control-custom"
+                               id="endTime" step="1800" />
+                        <span asp-validation-for="Input.EndTime" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="cost-box">
+                    <div class="cost-row">
+                        <span>Продолжительность:</span>
+                        <span id="durationText">—</span>
+                    </div>
+                    <div class="cost-total-row">
+                        <span>Итоговая стоимость:</span>
+                        <span class="cost-total-value" id="totalCostText">0.00 BYN</span>
+                    </div>
+                </div>
+
+                <div class="booking-actions d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn-ink" id="submitBookingBtn">Подтвердить бронирование</button>
+                    <a asp-page="/Index" class="btn-outline-ink">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function calculateTotal() {
+            var rate = parseFloat(document.getElementById('ratePerHour').getAttribute('data-rate').replace(',', '.'));
+            var startVal = document.getElementById('startTime').value;
+            var endVal = document.getElementById('endTime').value;
+
+            if (!startVal || !endVal) return;
+
+            var startParts = startVal.split(':').map(Number);
+            var endParts = endVal.split(':').map(Number);
+            var startMinutes = startParts[0] * 60 + startParts[1];
+            var endMinutes = endParts[0] * 60 + endParts[1];
+            var diffMinutes = endMinutes - startMinutes;
+
+            if (diffMinutes > 0) {
+                var hours = diffMinutes / 60;
+                document.getElementById('durationText').textContent = hours.toFixed(2) + ' ч. (' + diffMinutes + ' мин.)';
+                document.getElementById('totalCostText').textContent = (hours * rate).toFixed(2) + ' BYN';
+            } else {
+                document.getElementById('durationText').textContent = 'Некорректный интервал';
+                document.getElementById('totalCostText').textContent = '0.00 BYN';
+            }
+        }
+
+        document.getElementById('startTime').addEventListener('change', calculateTotal);
+        document.getElementById('endTime').addEventListener('change', calculateTotal);
+        calculateTotal();
+
+        var bookingDateInput = document.getElementById('bookingDate');
+        if (bookingDateInput) {
+            bookingDateInput.addEventListener('change', function () {
+                var val = this.value;
+                var wsId = document.querySelector('input[name="Input.WorkspaceId"]').value;
+                var label = document.getElementById('occupiedDateLabel');
+                var container = document.getElementById('occupiedSlotsContainer');
+                if (label && val) {
+                    var parts = val.split('-');
+                    if (parts.length === 3) label.textContent = parts[2] + '.' + parts[1] + '.' + parts[0];
+                }
+                if (val && wsId && container) {
+                    fetch('/Bookings/Create?handler=OccupiedSlots&workspaceId=' + encodeURIComponent(wsId) + '&date=' + encodeURIComponent(val))
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            container.innerHTML = '';
+                            if (data && data.length > 0) {
+                                data.forEach(function (slot) {
+                                    var sp = document.createElement('span');
+                                    sp.className = 'slot-badge slot-occupied';
+                                    sp.textContent = 'Занято: ' + slot.timeRange;
+                                    container.appendChild(sp);
+                                });
+                            } else {
+                                var sp = document.createElement('span');
+                                sp.className = 'slot-badge slot-free';
+                                sp.textContent = 'Место свободно на весь день';
+                                container.appendChild(sp);
+                            }
+                        })
+                        .catch(function () {});
+                }
+            });
+        }
+
+        var bForm = document.getElementById('bookingForm');
+        if (bForm) {
+            bForm.addEventListener('submit', function () {
+                if (bForm.checkValidity && !bForm.checkValidity()) return;
+                var btn = document.getElementById('submitBookingBtn');
+                if (btn) {
+                    setTimeout(function () {
+                        btn.disabled = true;
+                        btn.textContent = 'Оформление бронирования...';
+                    }, 20);
+                }
+            });
+        }
+    </script>
+}

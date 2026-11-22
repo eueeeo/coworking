@@ -1,0 +1,74 @@
+@page
+@model Coworking.Pages.Account.LoginModel
+@{
+    ViewData["Title"] = "Вход в систему";
+}
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div>
+                <h4 class="auth-title">Добро пожаловать</h4>
+                <p class="auth-sub">Войдите в свой аккаунт</p>
+            </div>
+        </div>
+
+        <div class="auth-body">
+            @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+            {
+                <div class="alert-custom alert-success-custom mb-4">@Model.SuccessMessage</div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.WarningMessage))
+            {
+                <div class="alert-custom alert-warning-custom mb-4">@Model.WarningMessage</div>
+            }
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert-custom alert-danger-custom mb-4" role="alert"></div>
+            }
+
+            @if (Model.ShowResendLink)
+            {
+                <div class="mb-4 p-3" style="background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); text-align: center;">
+                    <p class="small text-muted mb-2">Не получили письмо со ссылкой активации или срок ссылки истёк?</p>
+                    <a asp-page="/Account/ResendConfirmation" asp-route-email="@Model.UnconfirmedEmail" class="btn-outline-ink btn-outline-ink-sm">
+                        Запросить новую ссылку подтверждения
+                    </a>
+                </div>
+            }
+
+            <form method="post" asp-route-returnUrl="@Model.ReturnUrl" id="loginForm">
+                <div class="mb-3">
+                    <label asp-for="Input.Email" class="form-label-custom">Электронная почта</label>
+                    <input asp-for="Input.Email" class="form-control-custom" autocomplete="username" />
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Input.Password" class="form-label-custom">Пароль</label>
+                    <input asp-for="Input.Password" class="form-control-custom" autocomplete="current-password" />
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn-ink" style="width:100%;">Войти</button>
+            </form>
+        </div>
+
+        <div class="auth-footer" style="display: flex; flex-direction: column; gap: .5rem; align-items: center;">
+            <div>
+                Нет аккаунта? <a asp-page="/Account/Register" asp-route-returnUrl="@Model.ReturnUrl">Зарегистрироваться</a>
+            </div>
+            <div style="font-size: .82rem;">
+                <a asp-page="/Account/ResendConfirmation" style="color: var(--muted); text-decoration: underline;">
+                    Не пришло письмо подтверждения?
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

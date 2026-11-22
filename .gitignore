@@ -1,0 +1,32 @@
+## .NET and Visual Studio
+bin/
+obj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Local configuration & secrets
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+*.env
+*.local
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rms/
+[Aa]rm64/
+
+## Temporary / scratch
+scratch/
+*.log
+
+.gemini/
+__pycache__/
+*.pyc

@@ -1,0 +1,289 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Каталог рабочих мест и бронирование";
+}
+
+<section class="hero">
+    <div class="hero-text">
+        <div class="hero-location-line">Минск &middot; ул. Октябрьская, 19 &middot; ст.м. Первомайская</div>
+        <h1 class="hero-title">
+            Где сегодня<br>
+            <span class="accent">работаешь?</span>
+        </h1>
+        <p class="hero-sub">
+            Коворкинг в историческом центре Минска. Столы в общем зале, персональные места с 4K-мониторами, акустические кабины для звонков и переговорные комнаты. Почасовая оплата от 4.50 BYN/час, доступ 24/7, хороший кофе и быстрый интернет.
+        </p>
+        <div class="hero-actions">
+            <a href="#catalog" class="btn-ink">Выбрать рабочее место</a>
+            <a href="#spaces" class="btn-outline-ink">Форматы пространств</a>
+        </div>
+    </div>
+</section>
+
+<section class="home-section" id="spaces">
+    <div class="section-header">
+        <h2 class="section-title">Форматы пространств</h2>
+        <p class="section-sub">
+            Пять типов рабочих зон под разные задачи — от быстрого созвона до командных встреч.
+        </p>
+    </div>
+
+    <div class="formats-grid">
+        @foreach (var type in Model.SpaceTypes)
+        {
+            <div class="format-card">
+                <div class="format-card-header">
+                    <span class="format-capacity-tag">@IndexModel.GetSpaceFeature(type.Id)</span>
+                    <h3 class="format-title">@type.Name</h3>
+                </div>
+                <div class="format-card-body">
+                    <p class="format-desc">@IndexModel.GetSpaceShortNote(type.Id)</p>
+
+                    <div class="format-bottom">
+                        <div class="format-price-val">
+                            @type.PricePerHour.ToString("0.00") BYN <small>/ час</small>
+                        </div>
+                        <a href="/?TypeId=@type.Id#catalog" class="btn-outline-ink btn-sm-link" title="Показать места типа «@type.Name»">
+                            Смотреть места &rarr;
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>
+
+<section class="home-section" id="about">
+    <div id="amenities"></div>
+    <div class="section-header">
+        <h2 class="section-title">В каждый визит входит</h2>
+        <p class="section-sub">
+            Базовый набор сервисов, доступный резиденту при любом тарифе без дополнительных доплат.
+        </p>
+    </div>
+
+    <div class="service-strip">
+        <div class="service-col">
+            <h4 class="service-heading">Кофе и чай</h4>
+            <p class="service-text">
+                Свежеобжаренный зерновой кофе, листовой чай, фильтрованная вода и оборудованная кухня.
+            </p>
+        </div>
+        <div class="service-col">
+            <h4 class="service-heading">Интернет 1 Гбит/с</h4>
+            <p class="service-text">
+                Два независимых оптоволоконных провайдера, бесшовный Wi-Fi 6 и проводной Ethernet.
+            </p>
+        </div>
+        <div class="service-col">
+            <h4 class="service-heading">Доступ 24/7</h4>
+            <p class="service-text">
+                Круглосуточный электронный доступ по личному коду, видеонаблюдение и администратор на ресепшене.
+            </p>
+        </div>
+        <div class="service-col">
+            <h4 class="service-heading">Оргтехника</h4>
+            <p class="service-text">
+                Печать и сканирование документов на сетевом МФУ, бумага и маркерные доски.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="home-section" id="catalog">
+    <div class="section-header">
+        <h2 class="section-title">Каталог рабочих мест</h2>
+        <p class="section-sub">
+            Актуальный список мест с фильтрацией по этажам, зонам и оборудованию.
+        </p>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+    {
+        <div class="alert-custom alert-success-custom">
+            <span>@Model.SuccessMessage</span>
+            <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert-custom alert-danger-custom">@Model.ErrorMessage</div>
+    }
+
+    <div class="type-chips-scroll mb-3">
+        <div class="type-chips-bar">
+            <a href="/?FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId#catalog"
+               class="type-chip @(!Model.TypeId.HasValue ? "active" : "")">
+                Все форматы
+            </a>
+            @foreach (var st in Model.SpaceTypes)
+            {
+                var isSelected = Model.TypeId == st.Id;
+                <a href="/?TypeId=@st.Id&FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId#catalog"
+                   class="type-chip @(isSelected ? "active" : "")">
+                    @st.Name
+                </a>
+            }
+        </div>
+    </div>
+
+    <form method="get" class="filter-bar filter-bar-compact" action="/#catalog">
+        @if (Model.TypeId.HasValue)
+        {
+            <input type="hidden" name="TypeId" value="@Model.TypeId.Value" />
+        }
+        <div class="filter-group">
+            <label asp-for="FloorId" class="filter-label">Этаж</label>
+            <select asp-for="FloorId" asp-items="Model.FloorList" class="filter-select">
+                <option value="">Все этажи</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label asp-for="ZoneId" class="filter-label">Зона</label>
+            <select asp-for="ZoneId" asp-items="Model.ZoneList" class="filter-select">
+                <option value="">Все зоны</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label asp-for="AmenityId" class="filter-label">Удобство</label>
+            <select asp-for="AmenityId" asp-items="Model.AmenityList" class="filter-select">
+                <option value="">Любые удобства</option>
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button type="submit" class="btn-ink">Применить</button>
+            <a asp-page="/Index" asp-fragment="catalog" class="btn-outline-ink">Сбросить</a>
+        </div>
+    </form>
+
+    @if (Model.Workspaces.Count == 0 && string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="empty-state">
+            <h5>Ничего не найдено</h5>
+            <p>По выбранным параметрам рабочих мест не найдено. Попробуйте сбросить фильтры.</p>
+            <a asp-page="/Index" asp-fragment="catalog" class="btn-ink">Сбросить фильтры</a>
+        </div>
+    }
+    else
+    {
+        <p class="results-count">Найдено рабочих мест: <strong>@Model.Workspaces.Count</strong></p>
+
+        <div class="workspace-grid">
+            @foreach (var ws in Model.Workspaces)
+            {
+                <div class="workspace-card" onclick="openWorkspaceModal(this)" title="Нажмите для подробной информации">
+                    <div class="workspace-card-header">
+                        <span class="card-number-badge">@ws.Number</span>
+                        @if (ws.IsActive)
+                        {
+                            <span class="card-status-badge badge-available">Свободно</span>
+                        }
+                        else
+                        {
+                            <span class="card-status-badge badge-unavailable">Занято</span>
+                        }
+                    </div>
+
+                    <div class="card-body-custom">
+                        <div class="card-type">@ws.WorkspaceType.Name</div>
+                        <div class="card-location">@ws.Zone.Floor.Name &middot; @ws.Zone.Name</div>
+
+                        @if (!string.IsNullOrEmpty(ws.Description))
+                        {
+                            <div class="card-desc">@ws.Description</div>
+                        }
+
+                        @if (ws.WorkspaceAmenities.Any())
+                        {
+                            <div class="card-amenities-pills">
+                                @foreach (var wa in ws.WorkspaceAmenities.Take(3))
+                                {
+                                    <span class="card-amenity-pill">@IndexModel.GetShortAmenityName(wa.Amenity.Name)</span>
+                                }
+                                @if (ws.WorkspaceAmenities.Count > 3)
+                                {
+                                    <span class="card-amenity-pill pill-more">+@(ws.WorkspaceAmenities.Count - 3)</span>
+                                }
+                            </div>
+                        }
+
+                        <div class="card-details-trigger">
+                            <span>Подробности и все удобства (@ws.WorkspaceAmenities.Count)</span>
+                            <span class="details-arrow">&rarr;</span>
+                        </div>
+                    </div>
+
+                    <div class="workspace-modal-data" style="display:none;"
+                         data-id="@ws.Id"
+                         data-number="@ws.Number"
+                         data-type="@ws.WorkspaceType.Name"
+                         data-price="@ws.WorkspaceType.PricePerHour.ToString("0.00") BYN"
+                         data-location="@ws.Zone.Floor.Name · @ws.Zone.Name"
+                         data-active="@(ws.IsActive ? "1" : "0")"
+                         data-desc="@(ws.Description ?? ws.WorkspaceType.Description ?? "Комфортное и полностью оборудованное рабочее место в современном арт-пространстве коворкинга.")"
+                         data-amenities='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ws.WorkspaceAmenities.Select(wa => wa.Amenity.Name)))'>
+                    </div>
+
+                    <div class="card-footer-custom" onclick="event.stopPropagation();">
+                        <div class="card-price">
+                            @ws.WorkspaceType.PricePerHour.ToString("0.00") BYN
+                            <small>за час</small>
+                        </div>
+                        @if (ws.IsActive)
+                        {
+                            <a asp-page="/Bookings/Create" asp-route-workspaceId="@ws.Id" class="btn-ink btn-ink-sm">
+                                Забронировать
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-ink btn-ink-sm" disabled style="opacity:.4;cursor:not-allowed;">Недоступно</button>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<div class="workspace-modal-backdrop" id="workspaceModalBackdrop" onclick="closeWorkspaceModal(event)">
+    <div class="workspace-modal-card" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+        <button type="button" class="modal-close-btn" onclick="closeWorkspaceModal()" aria-label="Закрыть">&times;</button>
+        
+        <div class="modal-top-bar">
+            <span id="modalSpaceStatus" class="card-status-badge"></span>
+        </div>
+        
+        <div class="modal-body-content">
+            <div class="modal-header-row">
+                <div>
+                    <span id="modalSpaceNumber" class="modal-number-pill"></span>
+                    <h3 id="modalSpaceType" class="modal-title"></h3>
+                </div>
+                <div class="modal-price-box">
+                    <div id="modalSpacePrice" class="modal-price-val"></div>
+                    <small>за час аренды</small>
+                </div>
+            </div>
+
+            <div class="modal-location-row" id="modalSpaceLocation"></div>
+
+            <div id="modalUnavailableNotice" class="alert-custom alert-warning-custom my-3" style="display:none; font-size:.85rem;">
+                Это рабочее место сейчас занято или находится на техническом обслуживании. Вы можете выбрать другое свободное место того же формата в каталоге.
+            </div>
+
+            <div class="modal-section-title">Описание пространства</div>
+            <p class="modal-desc-text" id="modalSpaceDesc"></p>
+
+            <div class="modal-section-title">Включённые удобства и оборудование</div>
+            <ul class="modal-amenities-list" id="modalAmenitiesList"></ul>
+        </div>
+
+        <div class="modal-footer-row">
+            <button type="button" class="btn-outline-ink" onclick="closeWorkspaceModal()">Закрыть</button>
+            <a id="modalBookingBtn" href="#" class="btn-ink">Забронировать это место</a>
+        </div>
+    </div>
+</div>

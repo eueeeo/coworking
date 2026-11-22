@@ -1,0 +1,84 @@
+@page
+@model Coworking.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Регистрация клиента";
+}
+
+<div class="auth-wrap">
+    <div class="auth-card auth-card-wide">
+        <div class="auth-header">
+            <div>
+                <h4 class="auth-title">Регистрация</h4>
+                <p class="auth-sub">Создайте аккаунт клиента коворкинга</p>
+            </div>
+        </div>
+
+        <div class="auth-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="alert-custom alert-danger-custom mb-4" role="alert"></div>
+            }
+
+            <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.LastName" class="form-label-custom"></label>
+                        <input asp-for="Input.LastName" class="form-control-custom" />
+                        <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.FirstName" class="form-label-custom"></label>
+                        <input asp-for="Input.FirstName" class="form-control-custom" />
+                        <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Input.MiddleName" class="form-label-custom"></label>
+                    <span class="text-muted small">(при наличии)</span>
+                    <input asp-for="Input.MiddleName" class="form-control-custom" />
+                    <span asp-validation-for="Input.MiddleName" class="text-danger small"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.Email" class="form-label-custom"></label>
+                        <input asp-for="Input.Email" class="form-control-custom" autocomplete="username" />
+                        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.Phone" class="form-label-custom"></label>
+                        <input asp-for="Input.Phone" class="form-control-custom" placeholder="+375291234567" />
+                        <span asp-validation-for="Input.Phone" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.Password" class="form-label-custom"></label>
+                        <input asp-for="Input.Password" class="form-control-custom" autocomplete="new-password" />
+                        <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        <small class="text-muted d-block mt-1" style="font-size: .75rem;">Не менее 8 символов: заглавная буква, строчная буква и цифра</small>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Input.ConfirmPassword" class="form-label-custom"></label>
+                        <input asp-for="Input.ConfirmPassword" class="form-control-custom" autocomplete="new-password" />
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mt-2">
+                    <button type="submit" class="btn-ink" style="width:100%;">Зарегистрироваться</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-footer">
+            Уже есть аккаунт? <a asp-page="/Account/Login" asp-route-returnUrl="@Model.ReturnUrl">Войти</a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

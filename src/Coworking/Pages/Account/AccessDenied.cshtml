@@ -1,0 +1,11 @@
+@page
+@model Coworking.Pages.Account.AccessDeniedModel
+@{
+    ViewData["Title"] = "Доступ ограничен";
+}
+
+<div class="empty-state" style="margin: 3rem auto; max-width: 480px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 3rem 2rem; box-shadow: var(--shadow);">
+    <h3 style="font-weight: 800; margin-bottom: .5rem; color: var(--ink);">Доступ ограничен</h3>
+    <p style="color: var(--muted); margin-bottom: 1.5rem; font-size: .95rem;">У вашей учетной записи недостаточно прав для просмотра запрашиваемой страницы.</p>
+    <a asp-page="/Index" class="btn-ink">Вернуться на главную</a>
+</div>

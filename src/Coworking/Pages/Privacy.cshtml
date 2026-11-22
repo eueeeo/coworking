@@ -1,0 +1,107 @@
+﻿@page
+@model PrivacyModel
+@{
+    ViewData["Title"] = "Правила пространства и конфиденциальность";
+}
+
+<div class="breadcrumb-custom">
+    <a asp-page="/Index">Главная</a>
+    <span class="breadcrumb-sep">/</span>
+    <span class="breadcrumb-current">Правила и конфиденциальность</span>
+</div>
+
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Правила пространства и конфиденциальность</h2>
+        <p class="page-sub">Всё, что нужно знать о посещении, бронировании и обработке персональных данных</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="info-card mb-4">
+            <div class="info-card-header">1. Режим работы и доступ в коворкинг</div>
+            <div class="info-card-body" style="font-size: .95rem; line-height: 1.6; color: var(--ink);">
+                <p>
+                    Пространство коворкинга открыто для зарегистрированных резидентов с активными бронированиями <strong>круглосуточно (24/7)</strong>. 
+                    Администратор площадки находится на ресепшене 1-го этажа ежедневно с 09:00 до 21:00.
+                </p>
+                <p>
+                    Доступ на этажи и к рабочим местам осуществляется по номеру подтверждённой заявки в личном кабинете.
+                </p>
+            </div>
+        </div>
+
+        <div class="info-card mb-4">
+            <div class="info-card-header">2. Порядок бронирования, оплаты и отмены</div>
+            <div class="info-card-body" style="font-size: .95rem; line-height: 1.6; color: var(--ink);">
+                <p>
+                    Бронирование рабочих мест, кабинок и переговорных комнат доступно от <strong>30 минут</strong> с шагом тарификации в полчаса.
+                </p>
+                <p>
+                    <strong>Отмена бронирования:</strong> клиент имеет право бесплатно отменить созданную заявку в личном кабинете в любой момент до наступления забронированного времени начала аренды. После наступления времени начала отмена не производится.
+                </p>
+                <p>
+                    <strong>Почасовая ставка:</strong> тариф фиксируется на момент создания бронирования и не подлежит изменению в течение всего периода аренды.
+                </p>
+            </div>
+        </div>
+
+        <div class="info-card mb-4">
+            <div class="info-card-header">3. Зонирование и бережное отношение к оборудованию</div>
+            <div class="info-card-body" style="font-size: .95rem; line-height: 1.6; color: var(--ink);">
+                <ul style="padding-left: 1.25rem; margin-bottom: 0;">
+                    <li class="mb-2"><strong>1 этаж (Общественное пространство):</strong> подходит для командной работы, открытых обсуждений и кофе-брейков.</li>
+                    <li class="mb-2"><strong>2 этаж (Зона тишины):</strong> пространство глубокой концентрации; просим переводить телефоны в бесшумный режим, а голосовые звонки совершать в звукоизолированных кабинках.</li>
+                    <li class="mb-2"><strong>3 этаж (Деловая зона):</strong> закрытые переговорные комнаты и конференц-зал для презентаций.</li>
+                    <li>Все рабочие места оборудованы розетками 220V, скоростным интернетом и эргономичной мебелью. Пожалуйста, бережно относитесь к технике.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">4. Политика конфиденциальности и защита данных</div>
+            <div class="info-card-body" style="font-size: .95rem; line-height: 1.6; color: var(--ink);">
+                <p>
+                    Мы собираем только минимально необходимый объём персональных данных: фамилию, имя, отчество, контактный телефон и адрес электронной почты исключительно в целях идентификации бронирований и авторизации.
+                </p>
+                <p>
+                    Пароли пользователей шифруются с использованием криптографического алгоритма <strong>BCrypt</strong> и никогда не сохраняются в открытом виде. Токены подтверждения почты хешируются по стандарту SHA-256. Мы не передаём ваши персональные данные третьим лицам.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="info-card mb-4" style="background: var(--surface);">
+            <div class="info-card-header">Контакты поддержки</div>
+            <div class="info-card-body" style="font-size: .9rem;">
+                <div class="mb-3">
+                    <div class="text-muted small">Адрес пространства:</div>
+                    <div class="fw-bold">г. Минск, ул. Октябрьская, 19</div>
+                    <div class="small text-muted">метро Первомайская</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Телефон ресепшена:</div>
+                    <div class="fw-bold">+375 (29) 100-20-30</div>
+                </div>
+                <div class="mb-3">
+                    <div class="text-muted small">Электронная почта:</div>
+                    <div class="fw-bold">info@coworking.by</div>
+                </div>
+                <div>
+                    <div class="text-muted small">Режим работы:</div>
+                    <div class="fw-bold">24 часа / 7 дней в неделю</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card text-center" style="background: var(--surface-raised);">
+            <div class="info-card-body">
+                <h5 style="font-weight: 800; font-size: 1.05rem; margin-top: .5rem;">Готовы работать?</h5>
+                <p class="text-muted small mb-3">Выберите удобный стол или переговорную прямо сейчас</p>
+                <a asp-page="/Index" asp-fragment="catalog" class="btn-ink" style="width: 100%;">В каталог мест</a>
+            </div>
+        </div>
+    </div>
+</div>

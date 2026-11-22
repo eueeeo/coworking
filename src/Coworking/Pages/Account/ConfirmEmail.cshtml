@@ -1,0 +1,50 @@
+@page
+@model Coworking.Pages.Account.ConfirmEmailModel
+@{
+    ViewData["Title"] = "Подтверждение электронной почты";
+}
+
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div>
+                <h4 class="auth-title">Активация аккаунта</h4>
+                <p class="auth-sub">Подтверждение адреса почты</p>
+            </div>
+        </div>
+
+        <div class="auth-body text-center">
+            @if (Model.IsSuccess)
+            {
+                <div class="alert-custom alert-success-custom mb-4" style="text-align: left;">
+                    @Model.StatusMessage
+                </div>
+
+                <div class="mt-4">
+                    <a asp-page="/Account/Login" class="btn-ink" style="width: 100%;">
+                        Перейти ко входу
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="alert-custom alert-danger-custom mb-4" style="text-align: left;">
+                    @Model.StatusMessage
+                </div>
+
+                <div class="mt-4 d-flex flex-column gap-2">
+                    <a asp-page="/Account/ResendConfirmation" asp-route-email="@Model.UserEmail" class="btn-ink" style="width: 100%;">
+                        Запросить новую ссылку
+                    </a>
+                    <a asp-page="/Account/Login" class="btn-outline-ink" style="width: 100%;">
+                        Вернуться на страницу входа
+                    </a>
+                </div>
+            }
+        </div>
+
+        <div class="auth-footer text-center">
+            Нужна помощь? <a href="/#about">О сервисе коворкинга</a>
+        </div>
+    </div>
+</div>

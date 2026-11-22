@@ -1,0 +1,131 @@
+@page
+@model Coworking.Pages.Bookings.IndexModel
+@{
+    ViewData["Title"] = "Мои бронирования";
+}
+
+<div class="page-header">
+    <div>
+        <h2 class="page-title">Мои бронирования</h2>
+        <p class="page-sub">История и актуальный статус ваших заявок на рабочие места</p>
+    </div>
+    <a asp-page="/Index" class="btn-ink">+ Новое бронирование</a>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert-custom alert-success-custom">
+        <span>@Model.SuccessMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert-custom alert-danger-custom">
+        <span>@Model.ErrorMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+<div class="status-tabs-wrap mb-3">
+    <div class="status-tabs-bar">
+        <a asp-page="/Bookings/Index" asp-route-tab="all" class="status-tab @(Model.Tab == "all" ? "active" : "")">
+            Все бронирования <span class="status-tab-count">@Model.TotalCount</span>
+        </a>
+        <a asp-page="/Bookings/Index" asp-route-tab="active" class="status-tab @(Model.Tab == "active" ? "active" : "")">
+            Предстоящие и активные <span class="status-tab-count">@Model.ActiveCount</span>
+        </a>
+        <a asp-page="/Bookings/Index" asp-route-tab="history" class="status-tab @(Model.Tab == "history" ? "active" : "")">
+            История <span class="status-tab-count">@Model.HistoryCount</span>
+        </a>
+    </div>
+</div>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="empty-state">
+        <h5>Бронирований не найдено</h5>
+        <p>
+            @(Model.Tab == "active"
+                ? "У вас нет активных или предстоящих бронирований. Самое время забронировать рабочее место!"
+                : (Model.Tab == "history"
+                    ? "В истории пока нет завершённых или отменённых заявок."
+                    : "Выберите подходящее место в каталоге и оформите онлайн-бронирование за пару минут."))
+        </p>
+        <a asp-page="/Index" class="btn-ink">Перейти в каталог</a>
+    </div>
+}
+else
+{
+    <div class="data-table-wrap">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:80px;">Заявка</th>
+                        <th>Рабочее место</th>
+                        <th>Локация</th>
+                        <th>Период аренды</th>
+                        <th>Стоимость</th>
+                        <th>Статус</th>
+                        <th style="width:130px;text-align:right;">Действие</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Bookings)
+                    {
+                        var statusCss = item.StatusId switch
+                        {
+                            1 => "status-new",
+                            2 => "status-confirmed",
+                            3 => "status-active",
+                            4 => "status-done",
+                            5 => "status-cancelled",
+                            _ => "status-done"
+                        };
+
+                        var duration = item.EndsAt - item.StartsAt;
+                        var canCancel = (item.StatusId == 1 || item.StatusId == 2) && item.StartsAt > DateTime.Now;
+
+                        <tr>
+                            <td><span class="booking-id">#@item.Id</span></td>
+                            <td>
+                                <div style="font-weight:800;color:var(--ink);">@item.Workspace.Number</div>
+                                <small style="color:var(--muted);">@item.Workspace.WorkspaceType.Name</small>
+                            </td>
+                            <td>
+                                <div>@item.Workspace.Zone.Floor.Name</div>
+                                <small style="color:var(--muted);">@item.Workspace.Zone.Name</small>
+                            </td>
+                            <td>
+                                <div style="font-weight:700;">@item.StartsAt.ToString("dd.MM.yyyy")</div>
+                                <small style="color:var(--muted);">
+                                    @item.StartsAt.ToString("HH:mm") — @item.EndsAt.ToString("HH:mm")
+                                    (@duration.TotalHours.ToString("0.#") ч.)
+                                </small>
+                            </td>
+                            <td style="font-weight:800;">@item.TotalCost.ToString("0.00") BYN</td>
+                            <td>
+                                <span class="status-badge @statusCss">@item.Status.Name</span>
+                            </td>
+                            <td style="text-align:right;">
+                                @if (canCancel)
+                                {
+                                    <form method="post" asp-page-handler="Cancel" asp-route-id="@item.Id" style="display:inline;"
+                                          onsubmit="return confirm('Вы уверены, что хотите отменить бронирование места @item.Workspace.Number на @item.StartsAt.ToString("dd.MM.yyyy")?');">
+                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--muted);font-size:.85rem;">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

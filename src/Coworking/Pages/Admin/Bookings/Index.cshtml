@@ -1,0 +1,203 @@
+@page
+@model Coworking.Pages.Admin.Bookings.IndexModel
+@{
+    ViewData["Title"] = "Журнал бронирований";
+}
+
+<div class="admin-header-wrap">
+    <div>
+        <h2 class="page-title">Журнал бронирований</h2>
+        <p class="page-sub">Просмотр заявок и оперативное управление статусами</p>
+    </div>
+</div>
+
+<partial name="_AdminSubnav" model='"Bookings"' />
+
+<div class="admin-kpi-grid">
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-num">@Model.TotalCount</div>
+        <div class="admin-kpi-label">Всего записей</div>
+    </div>
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-num" style="color:var(--info, #2b6cb0);">@Model.NewCount</div>
+        <div class="admin-kpi-label">Ожидают подтверждения</div>
+    </div>
+    <div class="admin-kpi-card">
+        <div class="admin-kpi-num" style="color:var(--success, #2f855a);">@Model.ActiveCount</div>
+        <div class="admin-kpi-label">Активные бронирования</div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert-custom alert-success-custom">
+        <span>@Model.SuccessMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert-custom alert-danger-custom">
+        <span>@Model.ErrorMessage</span>
+        <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
+    </div>
+}
+
+<div class="status-tabs-wrap mb-3">
+    <div class="status-tabs-bar">
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(!Model.StatusId.HasValue ? "active" : "")">
+            Все <span class="status-tab-count">@Model.TotalCount</span>
+        </a>
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="1" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(Model.StatusId == 1 ? "active" : "")">
+            Новые <span class="status-tab-count">@Model.NewCount</span>
+        </a>
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="2" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(Model.StatusId == 2 ? "active" : "")">
+            Подтверждённые <span class="status-tab-count">@Model.ConfirmedCount</span>
+        </a>
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="3" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(Model.StatusId == 3 ? "active" : "")">
+            Активные <span class="status-tab-count">@Model.ActiveCount</span>
+        </a>
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="4" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(Model.StatusId == 4 ? "active" : "")">
+            Завершённые <span class="status-tab-count">@Model.DoneCount</span>
+        </a>
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="5" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+           class="status-tab @(Model.StatusId == 5 ? "active" : "")">
+            Отменённые <span class="status-tab-count">@Model.CancelledCount</span>
+        </a>
+    </div>
+</div>
+
+<div class="filter-panel mb-3">
+    <form method="get" class="row g-2 align-items-end">
+        @if (Model.StatusId.HasValue)
+        {
+            <input type="hidden" name="StatusId" value="@Model.StatusId.Value" />
+        }
+        <div class="col-md-5">
+            <label asp-for="Date" class="filter-label">Фильтрация по точной дате</label>
+            <input asp-for="Date" type="date" class="form-control" />
+        </div>
+        <div class="col-md-7 d-flex gap-2">
+            <button type="submit" class="btn-ink flex-fill">Применить дату</button>
+            <a asp-page="/Admin/Bookings/Index" class="btn-outline-ink">Сброс</a>
+        </div>
+    </form>
+</div>
+
+@if (!Model.Bookings.Any())
+{
+    <div class="empty-state">
+        <h5>Заявок не найдено</h5>
+        <p>По заданным параметрам в журнале нет записей.</p>
+        <a asp-page="/Admin/Bookings/Index" class="btn-ink">Сбросить фильтры</a>
+    </div>
+}
+else
+{
+    <p class="results-count" style="margin-bottom:.75rem;">Отображено записей: <strong>@Model.Bookings.Count</strong></p>
+
+    <div class="data-table-wrap">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th style="width:70px;">#</th>
+                        <th>Клиент</th>
+                        <th>Рабочее место</th>
+                        <th>Период</th>
+                        <th>Стоимость</th>
+                        <th>Статус</th>
+                        <th style="width:230px;text-align:right;">Сменить статус</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Bookings)
+                    {
+                        var statusCss = item.StatusId switch
+                        {
+                            1 => "status-new",
+                            2 => "status-confirmed",
+                            3 => "status-active",
+                            4 => "status-done",
+                            5 => "status-cancelled",
+                            _ => "status-done"
+                        };
+
+                        <tr>
+                            <td><span class="booking-id">#@item.Id</span></td>
+                            <td>
+                                <div class="fw-bold">@item.User.FullName</div>
+                                <div class="text-muted small">@item.User.Email</div>
+                                @if (!string.IsNullOrEmpty(item.User.Phone))
+                                {
+                                    <div class="text-muted small">@item.User.Phone</div>
+                                }
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.Workspace.Number</div>
+                                <div class="text-muted small">@item.Workspace.WorkspaceType.Name</div>
+                                <div class="text-muted small">@item.Workspace.Zone.Floor.Name, @item.Workspace.Zone.Name</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.StartsAt.ToString("dd.MM.yyyy")</div>
+                                <div class="text-muted small">@item.StartsAt.ToString("HH:mm") — @item.EndsAt.ToString("HH:mm")</div>
+                            </td>
+                            <td class="fw-bold">@item.TotalCost.ToString("0.00") BYN</td>
+                            <td>
+                                <span class="status-badge @statusCss">@item.Status.Name</span>
+                            </td>
+                            <td style="text-align:right;">
+                                @if (item.StatusId == 1)
+                                {
+                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="newStatusId" value="2" />
+                                        <button type="submit" class="btn-action-custom">Подтвердить</button>
+                                    </form>
+                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
+                                          onsubmit="return confirm('Отклонить бронирование #@item.Id?');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="newStatusId" value="5" />
+                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                    </form>
+                                }
+                                else if (item.StatusId == 2)
+                                {
+                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="newStatusId" value="3" />
+                                        <button type="submit" class="btn-action-custom">Активировать</button>
+                                    </form>
+                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
+                                          onsubmit="return confirm('Отменить бронирование #@item.Id?');">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="newStatusId" value="5" />
+                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                    </form>
+                                }
+                                else if (item.StatusId == 3)
+                                {
+                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <input type="hidden" name="newStatusId" value="4" />
+                                        <button type="submit" class="btn-action-custom">Завершить</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span style="color:var(--muted);font-size:.85rem;">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

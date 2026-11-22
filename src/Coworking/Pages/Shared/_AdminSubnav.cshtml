@@ -1,0 +1,41 @@
+@model string
+@{
+    var active = Model ?? "";
+}
+
+<div class="admin-nav-container">
+    <div class="admin-nav-group">
+        <span class="admin-nav-label">Операции</span>
+        <div class="admin-nav-pills">
+            <a asp-page="/Admin/Bookings/Index" class="admin-subnav-link @(active == "Bookings" ? "active" : "")">
+                Журнал бронирований
+            </a>
+            <a asp-page="/Admin/Reports/Index" class="admin-subnav-link @(active == "Reports" ? "active" : "")">
+                Отчеты и выручка
+            </a>
+        </div>
+    </div>
+    <div class="admin-nav-group">
+        <span class="admin-nav-label">Каталог и пространство</span>
+        <div class="admin-nav-pills">
+            <a asp-page="/Admin/Workspaces/Index" class="admin-subnav-link @(active == "Workspaces" ? "active" : "")">
+                Рабочие места
+            </a>
+            <a asp-page="/Admin/WorkspaceTypes/Index" class="admin-subnav-link @(active == "Types" ? "active" : "")">
+                Типы и тарифы
+            </a>
+            <a asp-page="/Admin/Floors/Index" class="admin-subnav-link @(active == "Floors" ? "active" : "")">
+                Этажи
+            </a>
+            <a asp-page="/Admin/Zones/Index" class="admin-subnav-link @(active == "Zones" ? "active" : "")">
+                Зоны
+            </a>
+            <a asp-page="/Admin/Amenities/Index" class="admin-subnav-link @(active == "Amenities" ? "active" : "")">
+                Удобства
+            </a>
+            <a asp-page="/Admin/Users/Index" class="admin-subnav-link @(active == "Users" ? "active" : "")">
+                Пользователи
+            </a>
+        </div>
+    </div>
+</div>
