@@ -61,6 +61,10 @@ window.openWorkspaceModal = function (cardEl) {
     var price = dataEl.getAttribute('data-price');
     var location = dataEl.getAttribute('data-location');
     var active = dataEl.getAttribute('data-active') === '1';
+    var occupied = dataEl.getAttribute('data-occupied') === '1';
+    var filterDate = dataEl.getAttribute('data-filter-date') || '';
+    var filterStart = dataEl.getAttribute('data-filter-start') || '';
+    var filterEnd = dataEl.getAttribute('data-filter-end') || '';
     var desc = dataEl.getAttribute('data-desc');
     var amenitiesRaw = dataEl.getAttribute('data-amenities') || '[]';
 
@@ -81,12 +85,15 @@ window.openWorkspaceModal = function (cardEl) {
 
     var statusEl = document.getElementById('modalSpaceStatus');
     if (statusEl) {
-        if (active) {
-            statusEl.className = 'card-status-badge badge-available';
-            statusEl.textContent = 'Свободно';
-        } else {
+        if (!active) {
+            statusEl.className = 'card-status-badge badge-unavailable';
+            statusEl.textContent = 'Обслуживание';
+        } else if (occupied) {
             statusEl.className = 'card-status-badge badge-unavailable';
             statusEl.textContent = 'Занято';
+        } else {
+            statusEl.className = 'card-status-badge badge-available';
+            statusEl.textContent = 'Свободно';
         }
     }
 
@@ -114,14 +121,29 @@ window.openWorkspaceModal = function (cardEl) {
     var notice = document.getElementById('modalUnavailableNotice');
     var bookingBtn = document.getElementById('modalBookingBtn');
     if (bookingBtn) {
-        if (active) {
-            bookingBtn.href = '/Bookings/Create?workspaceId=' + encodeURIComponent(id);
-            bookingBtn.style.display = 'inline-flex';
-            bookingBtn.textContent = 'Забронировать это место';
-            if (notice) notice.style.display = 'none';
-        } else {
+        if (!active) {
             bookingBtn.style.display = 'none';
-            if (notice) notice.style.display = 'block';
+            if (notice) {
+                notice.style.display = 'block';
+                notice.textContent = 'Это рабочее место сейчас находится на обслуживании. Вы можете выбрать другое свободное место в каталоге.';
+            }
+        } else {
+            var url = '/Bookings/Create?workspaceId=' + encodeURIComponent(id);
+            if (filterDate) url += '&date=' + encodeURIComponent(filterDate);
+            if (filterStart) url += '&startTime=' + encodeURIComponent(filterStart);
+            if (filterEnd) url += '&endTime=' + encodeURIComponent(filterEnd);
+            bookingBtn.href = url;
+            bookingBtn.style.display = 'inline-flex';
+            if (occupied) {
+                bookingBtn.textContent = 'Выбрать другое время';
+                if (notice) {
+                    notice.style.display = 'block';
+                    notice.textContent = 'Рабочее место занято в выбранный интервал. Вы можете перейти к бронированию и указать свободное время.';
+                }
+            } else {
+                bookingBtn.textContent = 'Забронировать это место';
+                if (notice) notice.style.display = 'none';
+            }
         }
     }
 

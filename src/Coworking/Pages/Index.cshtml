@@ -114,14 +114,14 @@
 
     <div class="type-chips-scroll mb-3">
         <div class="type-chips-bar">
-            <a href="/?FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId#catalog"
+            <a href="/?FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId&SearchTerm=@Model.SearchTerm&SortOrder=@Model.SortOrder&FilterDate=@(Model.FilterDate?.ToString("yyyy-MM-dd"))&FilterStartTime=@(Model.FilterStartTime?.ToString(@"hh\:mm"))&FilterEndTime=@(Model.FilterEndTime?.ToString(@"hh\:mm"))&OnlyAvailable=@(Model.OnlyAvailable ? "true" : "false")#catalog"
                class="type-chip @(!Model.TypeId.HasValue ? "active" : "")">
                 Все форматы
             </a>
             @foreach (var st in Model.SpaceTypes)
             {
                 var isSelected = Model.TypeId == st.Id;
-                <a href="/?TypeId=@st.Id&FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId#catalog"
+                <a href="/?TypeId=@st.Id&FloorId=@Model.FloorId&ZoneId=@Model.ZoneId&AmenityId=@Model.AmenityId&SearchTerm=@Model.SearchTerm&SortOrder=@Model.SortOrder&FilterDate=@(Model.FilterDate?.ToString("yyyy-MM-dd"))&FilterStartTime=@(Model.FilterStartTime?.ToString(@"hh\:mm"))&FilterEndTime=@(Model.FilterEndTime?.ToString(@"hh\:mm"))&OnlyAvailable=@(Model.OnlyAvailable ? "true" : "false")#catalog"
                    class="type-chip @(isSelected ? "active" : "")">
                     @st.Name
                 </a>
@@ -134,23 +134,54 @@
         {
             <input type="hidden" name="TypeId" value="@Model.TypeId.Value" />
         }
-        <div class="filter-group">
+        <div class="filter-group" style="flex: 2 1 200px;">
+            <label asp-for="SearchTerm" class="filter-label">Поиск</label>
+            <input asp-for="SearchTerm" class="form-control-custom" placeholder="Номер или описание..." />
+        </div>
+        <div class="filter-group" style="flex: 1 1 140px;">
             <label asp-for="FloorId" class="filter-label">Этаж</label>
             <select asp-for="FloorId" asp-items="Model.FloorList" class="filter-select">
                 <option value="">Все этажи</option>
             </select>
         </div>
-        <div class="filter-group">
+        <div class="filter-group" style="flex: 1 1 150px;">
             <label asp-for="ZoneId" class="filter-label">Зона</label>
             <select asp-for="ZoneId" asp-items="Model.ZoneList" class="filter-select">
                 <option value="">Все зоны</option>
             </select>
         </div>
-        <div class="filter-group">
+        <div class="filter-group" style="flex: 1 1 150px;">
             <label asp-for="AmenityId" class="filter-label">Удобство</label>
             <select asp-for="AmenityId" asp-items="Model.AmenityList" class="filter-select">
                 <option value="">Любые удобства</option>
             </select>
+        </div>
+        <div class="filter-group" style="flex: 1 1 160px;">
+            <label asp-for="SortOrder" class="filter-label">Сортировка</label>
+            <select asp-for="SortOrder" class="filter-select">
+                <option value="">По умолчанию</option>
+                <option value="price_asc">Сначала недорогие</option>
+                <option value="price_desc">Сначала премиум</option>
+                <option value="number_asc">По номеру места</option>
+            </select>
+        </div>
+        <div class="filter-group" style="flex: 1 1 140px;">
+            <label asp-for="FilterDate" class="filter-label">Дата визита</label>
+            <input asp-for="FilterDate" type="date" class="form-control-custom" min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="filter-group" style="flex: 1 1 110px;">
+            <label asp-for="FilterStartTime" class="filter-label">С</label>
+            <input asp-for="FilterStartTime" type="time" class="form-control-custom" step="1800" />
+        </div>
+        <div class="filter-group" style="flex: 1 1 110px;">
+            <label asp-for="FilterEndTime" class="filter-label">По</label>
+            <input asp-for="FilterEndTime" type="time" class="form-control-custom" step="1800" />
+        </div>
+        <div class="filter-group" style="flex: 0 1 auto; align-self: center; padding-top: 1rem;">
+            <label class="d-flex align-items-center gap-2 m-0" style="font-size: .88rem; font-weight: 500; cursor: pointer;">
+                <input asp-for="OnlyAvailable" type="checkbox" style="accent-color: var(--ink); width: 16px; height: 16px;" />
+                Свободные
+            </label>
         </div>
         <div class="filter-actions">
             <button type="submit" class="btn-ink">Применить</button>
@@ -176,13 +207,17 @@
                 <div class="workspace-card" onclick="openWorkspaceModal(this)" title="Нажмите для подробной информации">
                     <div class="workspace-card-header">
                         <span class="card-number-badge">@ws.Number</span>
-                        @if (ws.IsActive)
+                        @if (!ws.IsActive)
                         {
-                            <span class="card-status-badge badge-available">Свободно</span>
+                            <span class="card-status-badge badge-unavailable">Обслуживание</span>
+                        }
+                        else if (Model.OccupiedWorkspaceIds.Contains(ws.Id))
+                        {
+                            <span class="card-status-badge badge-unavailable">Занято</span>
                         }
                         else
                         {
-                            <span class="card-status-badge badge-unavailable">Занято</span>
+                            <span class="card-status-badge badge-available">Свободно</span>
                         }
                     </div>
 
@@ -222,6 +257,10 @@
                          data-price="@ws.WorkspaceType.PricePerHour.ToString("0.00") BYN"
                          data-location="@ws.Zone.Floor.Name · @ws.Zone.Name"
                          data-active="@(ws.IsActive ? "1" : "0")"
+                         data-occupied="@(Model.OccupiedWorkspaceIds.Contains(ws.Id) ? "1" : "0")"
+                         data-filter-date="@(Model.FilterDate?.ToString("yyyy-MM-dd"))"
+                         data-filter-start="@(Model.FilterStartTime?.ToString(@"hh\:mm"))"
+                         data-filter-end="@(Model.FilterEndTime?.ToString(@"hh\:mm"))"
                          data-desc="@(ws.Description ?? ws.WorkspaceType.Description ?? "Комфортное и полностью оборудованное рабочее место в современном арт-пространстве коворкинга.")"
                          data-amenities='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(ws.WorkspaceAmenities.Select(wa => wa.Amenity.Name)))'>
                     </div>
@@ -231,15 +270,31 @@
                             @ws.WorkspaceType.PricePerHour.ToString("0.00") BYN
                             <small>за час</small>
                         </div>
-                        @if (ws.IsActive)
+                        @if (!ws.IsActive)
                         {
-                            <a asp-page="/Bookings/Create" asp-route-workspaceId="@ws.Id" class="btn-ink btn-ink-sm">
-                                Забронировать
+                            <button class="btn-ink btn-ink-sm" disabled style="opacity:.4;cursor:not-allowed;">Недоступно</button>
+                        }
+                        else if (Model.OccupiedWorkspaceIds.Contains(ws.Id))
+                        {
+                            <a asp-page="/Bookings/Create"
+                               asp-route-workspaceId="@ws.Id"
+                               asp-route-date="@(Model.FilterDate?.ToString("yyyy-MM-dd"))"
+                               asp-route-startTime="@(Model.FilterStartTime?.ToString(@"hh\:mm"))"
+                               asp-route-endTime="@(Model.FilterEndTime?.ToString(@"hh\:mm"))"
+                               class="btn-outline-ink btn-ink-sm">
+                                Выбрать время
                             </a>
                         }
                         else
                         {
-                            <button class="btn-ink btn-ink-sm" disabled style="opacity:.4;cursor:not-allowed;">Недоступно</button>
+                            <a asp-page="/Bookings/Create"
+                               asp-route-workspaceId="@ws.Id"
+                               asp-route-date="@(Model.FilterDate?.ToString("yyyy-MM-dd"))"
+                               asp-route-startTime="@(Model.FilterStartTime?.ToString(@"hh\:mm"))"
+                               asp-route-endTime="@(Model.FilterEndTime?.ToString(@"hh\:mm"))"
+                               class="btn-ink btn-ink-sm">
+                                Забронировать
+                            </a>
                         }
                     </div>
                 </div>

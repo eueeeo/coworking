@@ -27,6 +27,9 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)]
     public DateTime? Date { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public string? SearchTerm { get; set; }
+
     public SelectList StatusList { get; set; } = null!;
 
     public int TotalCount { get; set; }
@@ -44,6 +47,8 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
+        await _context.SyncBookingStatusesAsync();
+
         var statuses = await _context.BookingStatuses.OrderBy(s => s.Id).AsNoTracking().ToListAsync();
         StatusList = new SelectList(statuses, nameof(BookingStatus.Id), nameof(BookingStatus.Name), StatusId);
 
@@ -52,6 +57,18 @@ public class IndexModel : PageModel
         {
             var targetDate = Date.Value.Date;
             allQuery = allQuery.Where(b => b.StartsAt.Date == targetDate);
+        }
+
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.Trim().ToLower();
+            allQuery = allQuery.Where(b =>
+                b.User.LastName.ToLower().Contains(term) ||
+                b.User.FirstName.ToLower().Contains(term) ||
+                (b.User.MiddleName != null && b.User.MiddleName.ToLower().Contains(term)) ||
+                b.User.Email.ToLower().Contains(term) ||
+                b.User.Phone.ToLower().Contains(term) ||
+                b.Workspace.Number.ToLower().Contains(term));
         }
 
         var allList = await allQuery.Select(b => new { b.Id, b.StatusId }).ToListAsync();
@@ -83,10 +100,41 @@ public class IndexModel : PageModel
             query = query.Where(b => b.StartsAt.Date == targetDate);
         }
 
+        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        {
+            var term = SearchTerm.Trim().ToLower();
+            query = query.Where(b =>
+                b.User.LastName.ToLower().Contains(term) ||
+                b.User.FirstName.ToLower().Contains(term) ||
+                (b.User.MiddleName != null && b.User.MiddleName.ToLower().Contains(term)) ||
+                b.User.Email.ToLower().Contains(term) ||
+                b.User.Phone.ToLower().Contains(term) ||
+                b.Workspace.Number.ToLower().Contains(term));
+        }
+
         Bookings = await query
             .OrderByDescending(b => b.StartsAt)
             .AsNoTracking()
             .ToListAsync();
+    }
+
+    public async Task<JsonResult> OnGetHistoryAsync(int bookingId)
+    {
+        var history = await _context.BookingStatusHistories
+            .Include(h => h.NewStatus)
+            .Include(h => h.User)
+            .Where(h => h.BookingId == bookingId)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new
+            {
+                statusName = h.NewStatus.Name,
+                changedAt = h.ChangedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm"),
+                userName = h.User.FullName,
+                comment = h.Comment ?? "Без комментария"
+            })
+            .ToListAsync();
+
+        return new JsonResult(history);
     }
 
     public async Task<IActionResult> OnPostChangeStatusAsync(int id, int newStatusId)

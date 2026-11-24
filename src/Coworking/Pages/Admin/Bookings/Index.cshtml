@@ -46,27 +46,27 @@
 
 <div class="status-tabs-wrap mb-3">
     <div class="status-tabs-bar">
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(!Model.StatusId.HasValue ? "active" : "")">
             Все <span class="status-tab-count">@Model.TotalCount</span>
         </a>
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="1" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="1" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(Model.StatusId == 1 ? "active" : "")">
             Новые <span class="status-tab-count">@Model.NewCount</span>
         </a>
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="2" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="2" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(Model.StatusId == 2 ? "active" : "")">
             Подтверждённые <span class="status-tab-count">@Model.ConfirmedCount</span>
         </a>
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="3" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="3" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(Model.StatusId == 3 ? "active" : "")">
             Активные <span class="status-tab-count">@Model.ActiveCount</span>
         </a>
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="4" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="4" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(Model.StatusId == 4 ? "active" : "")">
             Завершённые <span class="status-tab-count">@Model.DoneCount</span>
         </a>
-        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="5" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")"
+        <a asp-page="/Admin/Bookings/Index" asp-route-statusId="5" asp-route-date="@Model.Date?.ToString("yyyy-MM-dd")" asp-route-searchTerm="@Model.SearchTerm"
            class="status-tab @(Model.StatusId == 5 ? "active" : "")">
             Отменённые <span class="status-tab-count">@Model.CancelledCount</span>
         </a>
@@ -80,11 +80,15 @@
             <input type="hidden" name="StatusId" value="@Model.StatusId.Value" />
         }
         <div class="col-md-5">
-            <label asp-for="Date" class="filter-label">Фильтрация по точной дате</label>
+            <label asp-for="SearchTerm" class="filter-label">Поиск</label>
+            <input asp-for="SearchTerm" class="form-control" placeholder="Резидент, email, телефон, место..." />
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Date" class="filter-label">Точная дата</label>
             <input asp-for="Date" type="date" class="form-control" />
         </div>
-        <div class="col-md-7 d-flex gap-2">
-            <button type="submit" class="btn-ink flex-fill">Применить дату</button>
+        <div class="col-md-4 d-flex gap-2">
+            <button type="submit" class="btn-ink flex-fill">Применить</button>
             <a asp-page="/Admin/Bookings/Index" class="btn-outline-ink">Сброс</a>
         </div>
     </form>
@@ -113,7 +117,7 @@ else
                         <th>Период</th>
                         <th>Стоимость</th>
                         <th>Статус</th>
-                        <th style="width:230px;text-align:right;">Сменить статус</th>
+                        <th style="width:280px;text-align:right;">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -153,46 +157,48 @@ else
                                 <span class="status-badge @statusCss">@item.Status.Name</span>
                             </td>
                             <td style="text-align:right;">
-                                @if (item.StatusId == 1)
-                                {
-                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="newStatusId" value="2" />
-                                        <button type="submit" class="btn-action-custom">Подтвердить</button>
-                                    </form>
-                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
-                                          onsubmit="return confirm('Отклонить бронирование #@item.Id?');">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="newStatusId" value="5" />
-                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
-                                    </form>
-                                }
-                                else if (item.StatusId == 2)
-                                {
-                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="newStatusId" value="3" />
-                                        <button type="submit" class="btn-action-custom">Активировать</button>
-                                    </form>
-                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
-                                          onsubmit="return confirm('Отменить бронирование #@item.Id?');">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="newStatusId" value="5" />
-                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
-                                    </form>
-                                }
-                                else if (item.StatusId == 3)
-                                {
-                                    <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
-                                        <input type="hidden" name="id" value="@item.Id" />
-                                        <input type="hidden" name="newStatusId" value="4" />
-                                        <button type="submit" class="btn-action-custom">Завершить</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <span style="color:var(--muted);font-size:.85rem;">—</span>
-                                }
+                                <div class="d-flex justify-content-end align-items-center gap-1 flex-wrap">
+                                    <button type="button" class="btn-outline-ink btn-sm-link" onclick="openHistoryModal(@item.Id, '@item.Workspace.Number')">
+                                        История
+                                    </button>
+
+                                    @if (item.StatusId == 1)
+                                    {
+                                        <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="newStatusId" value="2" />
+                                            <button type="submit" class="btn-action-custom">Подтвердить</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
+                                              onsubmit="return confirm('Отклонить бронирование #@item.Id?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="newStatusId" value="5" />
+                                            <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                        </form>
+                                    }
+                                    else if (item.StatusId == 2)
+                                    {
+                                        <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="newStatusId" value="3" />
+                                            <button type="submit" class="btn-action-custom">Активировать</button>
+                                        </form>
+                                        <form method="post" asp-page-handler="ChangeStatus" style="display:inline;"
+                                              onsubmit="return confirm('Отменить бронирование #@item.Id?');">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="newStatusId" value="5" />
+                                            <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                        </form>
+                                    }
+                                    else if (item.StatusId == 3)
+                                    {
+                                        <form method="post" asp-page-handler="ChangeStatus" style="display:inline;">
+                                            <input type="hidden" name="id" value="@item.Id" />
+                                            <input type="hidden" name="newStatusId" value="4" />
+                                            <button type="submit" class="btn-action-custom">Завершить</button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -200,4 +206,75 @@ else
             </table>
         </div>
     </div>
+}
+
+<div class="workspace-modal-backdrop" id="historyModalBackdrop" onclick="closeHistoryModal(event)">
+    <div class="workspace-modal-card" style="max-width: 600px;" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+        <button type="button" class="modal-close-btn" onclick="closeHistoryModal()" aria-label="Закрыть">&times;</button>
+        <div class="modal-header-row mb-3">
+            <div>
+                <span class="modal-number-pill" id="historyBookingPill">#0</span>
+                <h3 class="modal-title" id="historyModalTitle">История статусов</h3>
+            </div>
+        </div>
+        <div id="historyModalContent" style="max-height: 400px; overflow-y: auto;">
+            <p class="text-muted">Загрузка истории...</p>
+        </div>
+        <div class="modal-footer-row mt-3">
+            <button type="button" class="btn-outline-ink" onclick="closeHistoryModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openHistoryModal(bookingId, wsNumber) {
+            var backdrop = document.getElementById('historyModalBackdrop');
+            if (!backdrop) return;
+
+            document.getElementById('historyBookingPill').textContent = '#' + bookingId;
+            document.getElementById('historyModalTitle').textContent = 'История статусов брони места ' + wsNumber;
+            var container = document.getElementById('historyModalContent');
+            container.innerHTML = '<p class="text-muted">Загрузка данных аудита...</p>';
+
+            backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            fetch('/Admin/Bookings/Index?handler=History&bookingId=' + encodeURIComponent(bookingId))
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<p class="text-muted">Записей в истории не найдено.</p>';
+                        return;
+                    }
+                    var html = '<ul style="list-style:none;padding:0;margin:0;">';
+                    data.forEach(function(item) {
+                        html += '<li style="padding:10px 0;border-bottom:1px solid var(--border);">' +
+                            '<div class="d-flex justify-content-between align-items-center mb-1">' +
+                                '<span class="status-badge" style="background:var(--ink);color:var(--bg);">' + item.statusName + '</span>' +
+                                '<small style="color:var(--muted);">' + item.changedAt + '</small>' +
+                            '</div>' +
+                            '<div style="font-size:.88rem;color:var(--ink);font-weight:600;">' + item.userName + '</div>' +
+                            '<div style="font-size:.82rem;color:var(--muted);margin-top:2px;">' + item.comment + '</div>' +
+                        '</li>';
+                    });
+                    html += '</ul>';
+                    container.innerHTML = html;
+                })
+                .catch(function(err) {
+                    container.innerHTML = '<p class="text-danger">Не удалось загрузить историю.</p>';
+                });
+        }
+
+        function closeHistoryModal(e) {
+            if (e && e.target && e.target.id !== 'historyModalBackdrop' && !e.target.classList.contains('modal-close-btn')) {
+                return;
+            }
+            var backdrop = document.getElementById('historyModalBackdrop');
+            if (backdrop) {
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    </script>
 }

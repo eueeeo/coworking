@@ -58,6 +58,8 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
+        await _context.SyncBookingStatusesAsync();
+
         if (!DateFrom.HasValue)
         {
             DateFrom = DateTime.Today.AddDays(-30);
@@ -131,5 +133,35 @@ public class IndexModel : PageModel
                 IsActive = w.IsActive
             };
         }).OrderByDescending(w => w.Revenue).ThenByDescending(w => w.BookingsCount).ToList();
+    }
+
+    public async Task<IActionResult> OnGetExportCsvAsync()
+    {
+        await _context.SyncBookingStatusesAsync();
+
+        var start = (DateFrom ?? DateTime.Today.AddDays(-30)).Date;
+        var end = (DateTo ?? DateTime.Today.AddMonths(2)).Date.AddDays(1).AddTicks(-1);
+
+        var bookings = await _context.Bookings
+            .Include(b => b.User)
+            .Include(b => b.Workspace).ThenInclude(w => w.WorkspaceType)
+            .Include(b => b.Workspace).ThenInclude(w => w.Zone).ThenInclude(z => z.Floor)
+            .Include(b => b.Status)
+            .Where(b => b.StartsAt >= start && b.StartsAt <= end)
+            .OrderByDescending(b => b.StartsAt)
+            .AsNoTracking()
+            .ToListAsync();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("ID заявки;Резидент;Email;Телефон;Рабочее место;Тип;Локация;Начало;Окончание;Часов;Стоимость BYN;Статус");
+
+        foreach (var b in bookings)
+        {
+            var hrs = (b.EndsAt - b.StartsAt).TotalHours;
+            sb.AppendLine($"{b.Id};\"{b.User.FullName}\";\"{b.User.Email}\";\"{b.User.Phone}\";\"{b.Workspace.Number}\";\"{b.Workspace.WorkspaceType.Name}\";\"{b.Workspace.Zone.Floor.Name}, {b.Workspace.Zone.Name}\";{b.StartsAt:dd.MM.yyyy HH:mm};{b.EndsAt:dd.MM.yyyy HH:mm};{hrs:0.0};{b.TotalCost:0.00};\"{b.Status.Name}\"");
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return File(bytes, "text/csv; charset=utf-8", $"coworking_report_{start:yyyyMMdd}_{end:yyyyMMdd}.csv");
     }
 }

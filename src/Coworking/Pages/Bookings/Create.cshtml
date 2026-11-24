@@ -68,6 +68,17 @@
 
                 <input type="hidden" asp-for="Input.WorkspaceId" />
 
+                @if (User.IsInRole("Администратор") && Model.UserList != null)
+                {
+                    <div class="mb-3">
+                        <label asp-for="Input.TargetUserId" class="form-label-custom">Бронирование для резидента</label>
+                        <select asp-for="Input.TargetUserId" asp-items="Model.UserList" class="form-control-custom">
+                            <option value="">Для себя (текущий аккаунт администратора)</option>
+                        </select>
+                        <span asp-validation-for="Input.TargetUserId" class="text-danger small"></span>
+                    </div>
+                }
+
                 <div class="mb-3">
                     <label asp-for="Input.BookingDate" class="form-label-custom">Дата бронирования</label>
                     <input asp-for="Input.BookingDate" type="date" class="form-control-custom"

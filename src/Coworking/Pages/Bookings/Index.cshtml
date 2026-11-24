@@ -1,13 +1,13 @@
 @page
 @model Coworking.Pages.Bookings.IndexModel
 @{
-    ViewData["Title"] = "Мои бронирования";
+    ViewData["Title"] = "Личный кабинет и бронирования";
 }
 
 <div class="page-header">
     <div>
-        <h2 class="page-title">Мои бронирования</h2>
-        <p class="page-sub">История и актуальный статус ваших заявок на рабочие места</p>
+        <h2 class="page-title">Личный кабинет резидента</h2>
+        <p class="page-sub">Профиль, статистика посещений и управление вашими бронированиями</p>
     </div>
     <a asp-page="/Index" class="btn-ink">+ Новое бронирование</a>
 </div>
@@ -27,6 +27,88 @@
         <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:1.1rem;color:inherit;">&times;</button>
     </div>
 }
+
+<div class="profile-card">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h3 style="font-size: 1.15rem; font-weight: 800; margin: 0; color: var(--ink);">Данные резидента</h3>
+        <button type="button" class="btn-outline-ink btn-sm-link" onclick="toggleProfileEdit()">Редактировать контакты</button>
+    </div>
+
+    <div class="profile-grid">
+        <div class="profile-field">
+            <div class="profile-field-label">ФИО резидента</div>
+            <div class="profile-field-val">@Model.CurrentUser.FullName</div>
+        </div>
+        <div class="profile-field">
+            <div class="profile-field-label">Электронная почта</div>
+            <div class="profile-field-val">
+                @Model.CurrentUser.Email
+                @if (Model.CurrentUser.IsEmailConfirmed)
+                {
+                    <span class="badge-status badge-active" style="font-size: .75rem; margin-left: .3rem;">Подтвержден</span>
+                }
+            </div>
+        </div>
+        <div class="profile-field">
+            <div class="profile-field-label">Телефон</div>
+            <div class="profile-field-val">@(string.IsNullOrEmpty(Model.CurrentUser.Phone) ? "Не указан" : Model.CurrentUser.Phone)</div>
+        </div>
+        <div class="profile-field">
+            <div class="profile-field-label">Категория аккаунта</div>
+            <div class="profile-field-val">@Model.CurrentUser.Role.Name</div>
+        </div>
+    </div>
+
+    <div id="profileEditForm" style="display:none; margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border);">
+        <form method="post" asp-page-handler="UpdateProfile">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="ProfileInput.LastName" class="form-label-custom">Фамилия</label>
+                    <input asp-for="ProfileInput.LastName" class="form-control-custom" />
+                    <span asp-validation-for="ProfileInput.LastName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="ProfileInput.FirstName" class="form-label-custom">Имя</label>
+                    <input asp-for="ProfileInput.FirstName" class="form-control-custom" />
+                    <span asp-validation-for="ProfileInput.FirstName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="ProfileInput.MiddleName" class="form-label-custom">Отчество</label>
+                    <input asp-for="ProfileInput.MiddleName" class="form-control-custom" />
+                    <span asp-validation-for="ProfileInput.MiddleName" class="text-danger small"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="ProfileInput.Phone" class="form-label-custom">Телефон (+375 ...)</label>
+                    <input asp-for="ProfileInput.Phone" class="form-control-custom" placeholder="+375 (29) 000-00-00" />
+                    <span asp-validation-for="ProfileInput.Phone" class="text-danger small"></span>
+                </div>
+                <div class="col-md-8 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn-ink">Сохранить изменения</button>
+                    <button type="button" class="btn-outline-ink" onclick="toggleProfileEdit()">Отмена</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-num">@Model.TotalCount</div>
+        <div class="stat-label">Всего бронирований</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num accent">@Model.ActiveCount</div>
+        <div class="stat-label">Активные и предстоящие</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num">@Model.HistoryCount</div>
+        <div class="stat-label">Завершено / отменено</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num success">@Model.TotalSpent.ToString("0.00") <small style="font-size: .9rem;">BYN</small></div>
+        <div class="stat-label">Сумма завершенных визитов</div>
+    </div>
+</div>
 
 <div class="status-tabs-wrap mb-3">
     <div class="status-tabs-bar">
@@ -69,7 +151,7 @@ else
                         <th>Период аренды</th>
                         <th>Стоимость</th>
                         <th>Статус</th>
-                        <th style="width:130px;text-align:right;">Действие</th>
+                        <th style="width:170px;text-align:right;">Действия</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,17 +192,31 @@ else
                                 <span class="status-badge @statusCss">@item.Status.Name</span>
                             </td>
                             <td style="text-align:right;">
-                                @if (canCancel)
-                                {
-                                    <form method="post" asp-page-handler="Cancel" asp-route-id="@item.Id" style="display:inline;"
-                                          onsubmit="return confirm('Вы уверены, что хотите отменить бронирование места @item.Workspace.Number на @item.StartsAt.ToString("dd.MM.yyyy")?');">
-                                        <button type="submit" class="btn-cancel-custom">Отменить</button>
-                                    </form>
-                                }
-                                else
-                                {
-                                    <span style="color:var(--muted);font-size:.85rem;">—</span>
-                                }
+                                <div class="d-flex justify-content-end align-items-center gap-1">
+                                    <button type="button" class="btn-outline-ink btn-sm-link"
+                                            onclick="openBookingTicket(this)"
+                                            data-id="@item.Id"
+                                            data-user="@Model.CurrentUser.FullName"
+                                            data-email="@Model.CurrentUser.Email"
+                                            data-phone="@Model.CurrentUser.Phone"
+                                            data-number="@item.Workspace.Number"
+                                            data-type="@item.Workspace.WorkspaceType.Name"
+                                            data-location="@item.Workspace.Zone.Floor.Name · @item.Workspace.Zone.Name"
+                                            data-date="@item.StartsAt.ToString("dd.MM.yyyy")"
+                                            data-time="@item.StartsAt.ToString("HH:mm") — @item.EndsAt.ToString("HH:mm") (@duration.TotalHours.ToString("0.#") ч.)"
+                                            data-cost="@item.TotalCost.ToString("0.00") BYN"
+                                            data-status="@item.Status.Name">
+                                        Талон
+                                    </button>
+
+                                    @if (canCancel)
+                                    {
+                                        <form method="post" asp-page-handler="Cancel" asp-route-id="@item.Id" style="display:inline;"
+                                              onsubmit="return confirm('Вы уверены, что хотите отменить бронирование места @item.Workspace.Number на @item.StartsAt.ToString("dd.MM.yyyy")?');">
+                                            <button type="submit" class="btn-cancel-custom">Отменить</button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
@@ -128,4 +224,106 @@ else
             </table>
         </div>
     </div>
+}
+
+<div class="workspace-modal-backdrop" id="ticketModalBackdrop" onclick="closeTicketModal(event)">
+    <div class="workspace-modal-card" style="max-width: 620px;" role="dialog" aria-modal="true" onclick="event.stopPropagation()">
+        <button type="button" class="modal-close-btn" onclick="closeTicketModal()" aria-label="Закрыть">&times;</button>
+        
+        <div class="modal-body-content" id="bookingPassPrintArea">
+            <div class="ticket-pass">
+                <div class="ticket-header">
+                    <div>
+                        <div class="ticket-brand">Коворкинг Coworking</div>
+                        <div class="ticket-brand-sub">Минск, ул. Октябрьская, 19 · ст.м. Первомайская</div>
+                    </div>
+                    <div class="ticket-num" id="ticketNumber">#000</div>
+                </div>
+
+                <div class="ticket-grid">
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Резидент</span>
+                        <span class="ticket-val" id="ticketResident">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Телефон</span>
+                        <span class="ticket-val" id="ticketPhone">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Рабочее место</span>
+                        <span class="ticket-val" id="ticketWorkspace">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Формат места</span>
+                        <span class="ticket-val" id="ticketType">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Локация</span>
+                        <span class="ticket-val" id="ticketLocation">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Дата бронирования</span>
+                        <span class="ticket-val" id="ticketDate">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Время и длительность</span>
+                        <span class="ticket-val" id="ticketTime">—</span>
+                    </div>
+                    <div class="ticket-row">
+                        <span class="ticket-lbl">Стоимость аренды</span>
+                        <span class="ticket-val" id="ticketCost" style="color:var(--accent);">—</span>
+                    </div>
+                </div>
+
+                <div class="ticket-footer">
+                    <div><strong>Правила посещения:</strong> Предъявите данный талон администратору на ресепшене или назовите номер бронирования при входе. Пожалуйста, соблюдайте тишину в общих зонах и бережно относитесь к оборудованию. Бесплатный Wi-Fi: Coworking-Guest / пароль на ресепшене.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-row mt-3">
+            <button type="button" class="btn-outline-ink" onclick="closeTicketModal()">Закрыть</button>
+            <button type="button" class="btn-ink" onclick="window.print()">Распечатать талон</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleProfileEdit() {
+            var el = document.getElementById('profileEditForm');
+            if (!el) return;
+            el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+        }
+
+        function openBookingTicket(btn) {
+            var backdrop = document.getElementById('ticketModalBackdrop');
+            if (!backdrop) return;
+
+            document.getElementById('ticketNumber').textContent = '#' + btn.getAttribute('data-id');
+            document.getElementById('ticketResident').textContent = btn.getAttribute('data-user');
+            document.getElementById('ticketPhone').textContent = btn.getAttribute('data-phone') || btn.getAttribute('data-email');
+            document.getElementById('ticketWorkspace').textContent = 'Место № ' + btn.getAttribute('data-number');
+            document.getElementById('ticketType').textContent = btn.getAttribute('data-type');
+            document.getElementById('ticketLocation').textContent = btn.getAttribute('data-location');
+            document.getElementById('ticketDate').textContent = btn.getAttribute('data-date');
+            document.getElementById('ticketTime').textContent = btn.getAttribute('data-time');
+            document.getElementById('ticketCost').textContent = btn.getAttribute('data-cost');
+
+            backdrop.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTicketModal(e) {
+            if (e && e.target && e.target.id !== 'ticketModalBackdrop' && !e.target.classList.contains('modal-close-btn')) {
+                return;
+            }
+            var backdrop = document.getElementById('ticketModalBackdrop');
+            if (backdrop) {
+                backdrop.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    </script>
 }

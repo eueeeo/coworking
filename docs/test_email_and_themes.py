@@ -86,7 +86,7 @@ try:
         res_html = resp.read().decode('utf-8')
         assert "Пароли не совпадают" in res_html, "Валидация несовпадения паролей не сработала"
         assert "ValidPass123!" not in res_html, "Пароль отобразился в открытом виде после ошибки!"
-        print("  ✓ Валидация несовпадения паролей работает корректно (пароль скрыт)")
+        print("  [OK] Валидация несовпадения паролей работает корректно (пароль скрыт)")
 
     # 1.2 Слабый пароль (без заглавной буквы / цифры)
     data_weak = urllib.parse.urlencode({
@@ -101,7 +101,7 @@ try:
     with opener.open(urllib.request.Request(reg_url, data=data_weak, method='POST')) as resp:
         res_html = resp.read().decode('utf-8')
         assert "заглавную букву" in res_html or "минимум 8 символов" in res_html, "Валидация сложности пароля не сработала"
-        print("  ✓ Валидация сложности пароля работает корректно")
+        print("  [OK] Валидация сложности пароля работает корректно")
 
     # 1.3 Повторная регистрация существующей почты
     data_dup = urllib.parse.urlencode({
@@ -116,7 +116,7 @@ try:
     with opener.open(urllib.request.Request(reg_url, data=data_dup, method='POST')) as resp:
         res_html = resp.read().decode('utf-8')
         assert "уже зарегистрирован" in res_html or "уже существует" in res_html, "Проверка дубликата email не сработала"
-        print("  ✓ Блокировка дубликата email работает корректно")
+        print("  [OK] Блокировка дубликата email работает корректно")
 
     # ==============================================================
     # ТЕСТ 2: УСПЕШНАЯ РЕГИСТРАЦИЯ И ПРОВЕРКА ХЕША ТОКЕНА В БД
@@ -137,14 +137,14 @@ try:
     with opener.open(urllib.request.Request(reg_url, data=data_success, method='POST')) as resp:
         res_html = resp.read().decode('utf-8')
         assert resp.status == 200
-        print("  ✓ Регистрация завершена, сервер перенаправил на страницу входа")
+        print("  [OK] Регистрация завершена, сервер перенаправил на страницу входа")
 
     # Проверка БД: пользователь создан с is_email_confirmed = 0 и непустым email_confirmation_token_hash
     db_out = run_mysql(f"SELECT ID_user, email, is_active, is_email_confirmed, email_confirmation_token_hash FROM coworking.Users WHERE email = '{test_email}';")
     assert test_email in db_out, "Пользователь не найден в БД!"
     assert "0" in db_out, "Почта должна быть неподтвержденной (is_email_confirmed = 0)!"
-    print("  ✓ В БД создана запись с is_email_confirmed = 0")
-    print("  ✓ Токен подтверждения захеширован в базе данных (открытый токен не сохраняется)")
+    print("  [OK] В БД создана запись с is_email_confirmed = 0")
+    print("  [OK] Токен подтверждения захеширован в базе данных (открытый токен не сохраняется)")
 
     # Получаем ID созданного пользователя
     user_id_match = re.search(r'(\d+)\s+' + test_email, db_out)
@@ -170,8 +170,8 @@ try:
         unconf_resp_html = resp.read().decode('utf-8')
         assert "не подтверждён" in unconf_resp_html, "Сервер разрешил вход или не показал предупреждение о неподтвержденной почте!"
         assert "Запросить" in unconf_resp_html or "ResendConfirmation" in unconf_resp_html, "Ссылка на повторный запрос письма отсутствует"
-        print("  ✓ Вход с неподтвержденной почтой надежно заблокирован")
-        print("  ✓ Пользователю выведено понятное сообщение со ссылкой на повторный запрос")
+        print("  [OK] Вход с неподтвержденной почтой надежно заблокирован")
+        print("  [OK] Пользователю выведено понятное сообщение со ссылкой на повторный запрос")
 
     # ==============================================================
     # ТЕСТ 4: ПОВТОРНАЯ ОТПРАВКА И АННУЛИРОВАНИЕ ПРЕДЫДУЩЕГО ТОКЕНА
@@ -199,7 +199,7 @@ try:
     new_hash_out = run_mysql(f"SELECT email_confirmation_token_hash FROM coworking.Users WHERE ID_user = {user_id};")
     new_hash = new_hash_out.splitlines()[1].strip()
     assert new_hash != old_hash, "Хеш токена не обновился при повторном запросе!"
-    print("  ✓ При повторном запросе сгенерирован новый токен, предыдущий аннулирован")
+    print("  [OK] При повторном запросе сгенерирован новый токен, предыдущий аннулирован")
 
     # ==============================================================
     # ТЕСТ 5: ПРОВЕРКА ССЫЛКИ ПОДТВЕРЖДЕНИЯ (НЕВЕРНЫЙ И ВЕРНЫЙ ТОКЕНЫ)
@@ -210,7 +210,7 @@ try:
     with opener.open(bad_url) as resp:
         bad_html = resp.read().decode('utf-8')
         assert "Недействительная ссылка" in bad_html or "истёк" in bad_html
-        print("  ✓ Неверный токен корректно отклонён")
+        print("  [OK] Неверный токен корректно отклонён")
 
     # 5.2 Валидный токен
     # Для теста сымитируем валидный сырой токен и запишем его SHA-256 хеш в БД
@@ -222,19 +222,19 @@ try:
     with opener.open(good_url) as resp:
         good_html = resp.read().decode('utf-8')
         assert "успешно подтверждён" in good_html
-        print("  ✓ Валидный токен успешно подтверждён, аккаунт активирован")
+        print("  [OK] Валидный токен успешно подтверждён, аккаунт активирован")
 
     # Проверяем в БД: is_email_confirmed = 1, токен очищен
     after_db = run_mysql(f"SELECT is_email_confirmed, email_confirmation_token_hash FROM coworking.Users WHERE ID_user = {user_id};")
     assert "1" in after_db.splitlines()[1], "is_email_confirmed не равен 1 в БД!"
     assert "NULL" in after_db.splitlines()[1], "Токен не очищен после использования!"
-    print("  ✓ В БД статус обновлён: is_email_confirmed = 1, токен очищен (однократное использование)")
+    print("  [OK] В БД статус обновлён: is_email_confirmed = 1, токен очищен (однократное использование)")
 
     # 5.3 Повторный переход по той же ссылке
     with opener.open(good_url) as resp:
         reuse_html = resp.read().decode('utf-8')
         assert "уже был успешно подтверждён" in reuse_html or "уже подтверждён" in reuse_html
-        print("  ✓ Повторное использование ссылки корректно сообщает о ранее подтверждённой почте")
+        print("  [OK] Повторное использование ссылки корректно сообщает о ранее подтверждённой почте")
 
     # ==============================================================
     # ТЕСТ 6: ВХОД В АККАУНТ ПОСЛЕ ПОДТВЕРЖДЕНИЯ
@@ -253,7 +253,7 @@ try:
     with opener.open(urllib.request.Request(login_url, data=login_post, method='POST')) as resp:
         logged_html = resp.read().decode('utf-8')
         assert "Смирнов" in logged_html or "Выйти" in logged_html, "Вход подтверждённого пользователя не удался!"
-        print("  ✓ Успешный вход в аккаунт после подтверждения почты, сессия создана!")
+        print("  [OK] Успешный вход в аккаунт после подтверждения почты, сессия создана!")
 
     # ==============================================================
     # ТЕСТ 7: ПЕРЕКЛЮЧЕНИЕ СВЕТЛОЙ И ТЁМНОЙ ТЕМЫ
@@ -264,8 +264,8 @@ try:
         assert 'data-theme' in home_html or 'coworking_theme' in home_html, "Раннее применение темы отсутствует в head"
         assert 'theme-toggle-btn' in home_html, "Кнопка переключателя темы отсутствует в шапке"
         assert 'Тёмная тема' in home_html, "Подпись переключателя темы отсутствует"
-        print("  ✓ Переключатель тем присутствует в шапке")
-        print("  ✓ Скрипт защиты от мерцания (FOUC) внедрён в head")
+        print("  [OK] Переключатель тем присутствует в шапке")
+        print("  [OK] Скрипт защиты от мерцания (FOUC) внедрён в head")
 
     # ==============================================================
     # ТЕСТ 8: РЕНДЕРИНГ В MICROSOFT EDGE HEADLESS НА 5 РАЗРЕШЕНИЯХ (ОБЕ ТЕМЫ)
@@ -304,13 +304,13 @@ try:
             ]
             subprocess.run(cmd, capture_output=True, timeout=15)
             if os.path.exists(shot_file) and os.path.getsize(shot_file) > 1000:
-                print(f"  ✓ {page_name:<16} рендеринг OK (размер {os.path.getsize(shot_file)} байт)")
+                print(f"  [OK] {page_name:<16} рендеринг OK (размер {os.path.getsize(shot_file)} байт)")
             else:
-                print(f"  ✗ {page_name:<16} ошибка рендеринга")
+                print(f"  [X] {page_name:<16} ошибка рендеринга")
 
     # Очистка тестового пользователя
     run_mysql(f"DELETE FROM coworking.Users WHERE ID_user = {user_id};")
-    print("\n✓ Тестовые данные очищены из базы данных")
+    print("\n[OK] Тестовые данные очищены из базы данных")
 
     print("\n============================================================")
     print("ВСЕ ТЕСТЫ ВАЛИДАЦИИ, ПОДТВЕРЖДЕНИЯ ПОЧТЫ И ТЕМ ПРОЙДЕНЫ!")

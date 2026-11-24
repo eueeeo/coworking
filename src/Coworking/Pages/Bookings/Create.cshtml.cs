@@ -5,6 +5,7 @@ using Coworking.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace Coworking.Pages.Bookings;
@@ -23,6 +24,7 @@ public class CreateModel : PageModel
     public InputModel Input { get; set; } = new();
 
     public Workspace Workspace { get; set; } = null!;
+    public SelectList? UserList { get; set; }
 
     public class OccupiedSlot
     {
@@ -37,6 +39,8 @@ public class CreateModel : PageModel
     {
         [Required]
         public int WorkspaceId { get; set; }
+
+        public int? TargetUserId { get; set; }
 
         [Required(ErrorMessage = "Укажите дату бронирования")]
         [DataType(DataType.Date)]
@@ -54,7 +58,7 @@ public class CreateModel : PageModel
         public TimeSpan EndTime { get; set; } = new TimeSpan(14, 0, 0);
     }
 
-    public async Task<IActionResult> OnGetAsync(int? workspaceId)
+    public async Task<IActionResult> OnGetAsync(int? workspaceId, string? date, string? startTime, string? endTime)
     {
         if (workspaceId == null)
         {
@@ -79,23 +83,59 @@ public class CreateModel : PageModel
         Workspace = ws;
         Input.WorkspaceId = ws.Id;
 
-        if (DateTime.Now.Hour < 18)
+        if (!string.IsNullOrEmpty(date) && DateTime.TryParse(date, out var parsedDate) && parsedDate.Date >= DateTime.Today)
+        {
+            Input.BookingDate = parsedDate.Date;
+        }
+        else if (DateTime.Now.Hour < 18)
         {
             Input.BookingDate = DateTime.Today;
-            var startHour = Math.Max(DateTime.Now.Hour + 1, 9);
-            Input.StartTime = new TimeSpan(startHour, 0, 0);
-            Input.EndTime = new TimeSpan(Math.Min(startHour + 3, 22), 0, 0);
         }
         else
         {
             Input.BookingDate = DateTime.Today.AddDays(1);
+        }
+
+        if (!string.IsNullOrEmpty(startTime) && TimeSpan.TryParse(startTime, out var parsedStart))
+        {
+            Input.StartTime = parsedStart;
+        }
+        else if (Input.BookingDate == DateTime.Today)
+        {
+            var startHour = Math.Max(DateTime.Now.Hour + 1, 9);
+            Input.StartTime = new TimeSpan(startHour, 0, 0);
+        }
+        else
+        {
             Input.StartTime = new TimeSpan(10, 0, 0);
-            Input.EndTime = new TimeSpan(14, 0, 0);
+        }
+
+        if (!string.IsNullOrEmpty(endTime) && TimeSpan.TryParse(endTime, out var parsedEnd) && parsedEnd > Input.StartTime)
+        {
+            Input.EndTime = parsedEnd;
+        }
+        else
+        {
+            Input.EndTime = new TimeSpan(Math.Min(Input.StartTime.Hours + 3, 22), 0, 0);
         }
 
         await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+        await LoadAdminUsersAsync();
 
         return Page();
+    }
+
+    private async Task LoadAdminUsersAsync()
+    {
+        if (User.IsInRole("Администратор"))
+        {
+            var users = await _context.Users
+                .Where(u => u.IsActive)
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, Text = $"{u.FullName} ({u.Email})" })
+                .ToListAsync();
+            UserList = new SelectList(users, "Id", "Text", Input.TargetUserId);
+        }
     }
 
     private async Task LoadOccupiedSlotsAsync(int workspaceId, DateTime date)
@@ -168,6 +208,7 @@ public class CreateModel : PageModel
         if (!ModelState.IsValid)
         {
             await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
             return Page();
         }
 
@@ -178,6 +219,7 @@ public class CreateModel : PageModel
         {
             ModelState.AddModelError("Input.EndTime", "Время окончания должно быть позже времени начала.");
             await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
             return Page();
         }
 
@@ -185,6 +227,15 @@ public class CreateModel : PageModel
         {
             ModelState.AddModelError("Input.BookingDate", "Нельзя оформить бронирование на прошедшее время.");
             await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
+            return Page();
+        }
+
+        if (startDateTime > DateTime.Now.AddDays(60))
+        {
+            ModelState.AddModelError("Input.BookingDate", "Бронирование возможно не более чем на 60 дней вперед.");
+            await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
             return Page();
         }
 
@@ -193,6 +244,15 @@ public class CreateModel : PageModel
         {
             ModelState.AddModelError("Input.EndTime", "Минимальная продолжительность бронирования составляет 30 минут.");
             await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
+            return Page();
+        }
+
+        if (duration.TotalHours > 24)
+        {
+            ModelState.AddModelError("Input.EndTime", "Максимальная продолжительность разового бронирования составляет 24 часа.");
+            await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
             return Page();
         }
 
@@ -207,21 +267,35 @@ public class CreateModel : PageModel
         {
             ModelState.AddModelError(string.Empty, "Выбранный временной интервал пересекается с другим бронированием этого места. Выберите другое время или другое рабочее место.");
             await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
             return Page();
         }
 
         var hours = (decimal)duration.TotalHours;
         var totalCost = Math.Round(hours * ws.WorkspaceType.PricePerHour, 2);
 
-        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (!int.TryParse(userIdString, out var userId))
+        var currentUserIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(currentUserIdString, out var currentUserId))
         {
             return Forbid();
         }
 
+        var bookingUserId = currentUserId;
+        var comment = "Бронирование оформлено клиентом через веб-интерфейс";
+
+        if (User.IsInRole("Администратор") && Input.TargetUserId.HasValue)
+        {
+            var targetUserExists = await _context.Users.AnyAsync(u => u.Id == Input.TargetUserId.Value && u.IsActive);
+            if (targetUserExists)
+            {
+                bookingUserId = Input.TargetUserId.Value;
+                comment = $"Бронирование оформлено администратором для клиента #{bookingUserId}";
+            }
+        }
+
         var booking = new Booking
         {
-            UserId = userId,
+            UserId = bookingUserId,
             WorkspaceId = ws.Id,
             StatusId = 2,
             StartsAt = startDateTime,
@@ -230,22 +304,37 @@ public class CreateModel : PageModel
             CreatedAt = DateTime.UtcNow
         };
 
-        _context.Bookings.Add(booking);
-        await _context.SaveChangesAsync();
-
-        var history = new BookingStatusHistory
+        try
         {
-            BookingId = booking.Id,
-            NewStatusId = 2,
-            UserId = userId,
-            ChangedAt = DateTime.UtcNow,
-            Comment = "Бронирование оформлено клиентом через веб-интерфейс"
-        };
+            _context.Bookings.Add(booking);
+            await _context.SaveChangesAsync();
 
-        _context.BookingStatusHistories.Add(history);
-        await _context.SaveChangesAsync();
+            var history = new BookingStatusHistory
+            {
+                BookingId = booking.Id,
+                NewStatusId = 2,
+                UserId = currentUserId,
+                ChangedAt = DateTime.UtcNow,
+                Comment = comment
+            };
+
+            _context.BookingStatusHistories.Add(history);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            ModelState.AddModelError(string.Empty, "К сожалению, в процессе оформления этот временной интервал уже был занят другим бронированием. Пожалуйста, выберите другое время.");
+            await LoadOccupiedSlotsAsync(ws.Id, Input.BookingDate);
+            await LoadAdminUsersAsync();
+            return Page();
+        }
 
         TempData["SuccessMessage"] = $"Бронирование места {ws.Number} успешно оформлено на {startDateTime:dd.MM.yyyy HH:mm} - {endDateTime:HH:mm} (итого: {totalCost:0.00} BYN).";
+
+        if (User.IsInRole("Администратор") && bookingUserId != currentUserId)
+        {
+            return RedirectToPage("/Admin/Bookings/Index");
+        }
 
         return RedirectToPage("/Bookings/Index");
     }

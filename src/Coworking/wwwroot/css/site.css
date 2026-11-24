@@ -2345,3 +2345,120 @@ img, svg {
   background: var(--accent);
   color: #fff;
 }
+
+.profile-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+}
+.profile-field-label {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--muted);
+  margin-bottom: .25rem;
+}
+.profile-field-val {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ticket-pass {
+  background: #ffffff;
+  border: 2px dashed var(--ink);
+  border-radius: 8px;
+  padding: 24px;
+  color: #1a1918;
+  max-width: 580px;
+  margin: 0 auto;
+}
+.ticket-header {
+  border-bottom: 2px solid #1a1918;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.ticket-brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.ticket-brand-sub {
+  font-size: .8rem;
+  color: #6e675f;
+}
+.ticket-num {
+  font-size: 1.15rem;
+  font-weight: 800;
+  background: #1a1918;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.ticket-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ticket-row {
+  display: flex;
+  flex-direction: column;
+}
+.ticket-lbl {
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #8c827a;
+}
+.ticket-val {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #1a1918;
+}
+.ticket-footer {
+  border-top: 1px solid #e5dfd8;
+  padding-top: 12px;
+  font-size: .78rem;
+  color: #6e675f;
+  line-height: 1.4;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .app-header, .site-footer, .btn-ink, .btn-outline-ink, .status-tabs-wrap, .page-header, .profile-card, .data-table-wrap, .stat-grid, .modal-close-btn, .modal-footer-row, .no-print {
+    display: none !important;
+  }
+  .workspace-modal-backdrop {
+    position: static !important;
+    background: none !important;
+    display: block !important;
+    padding: 0 !important;
+  }
+  .workspace-modal-card {
+    border: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .ticket-pass {
+    border: 2px solid #000 !important;
+    max-width: 100% !important;
+  }
+}

@@ -19,6 +19,13 @@ public class IndexModel : PageModel
     public IList<Workspace> Workspaces { get; set; } = new List<Workspace>();
     public IList<WorkspaceType> SpaceTypes { get; set; } = new List<WorkspaceType>();
     public IList<Amenity> AmenitiesList { get; set; } = new List<Amenity>();
+    public HashSet<int> OccupiedWorkspaceIds { get; set; } = new();
+
+    [BindProperty(SupportsGet = true)]
+    public string? SearchTerm { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? SortOrder { get; set; }
 
     [BindProperty(SupportsGet = true)]
     public int? FloorId { get; set; }
@@ -31,6 +38,18 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)]
     public int? AmenityId { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public DateTime? FilterDate { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public TimeSpan? FilterStartTime { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public TimeSpan? FilterEndTime { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public bool OnlyAvailable { get; set; }
 
     public SelectList FloorList { get; set; } = null!;
     public SelectList ZoneList { get; set; } = null!;
@@ -46,6 +65,8 @@ public class IndexModel : PageModel
     {
         try
         {
+            await _context.SyncBookingStatusesAsync();
+
             var floors = await _context.Floors.OrderBy(f => f.Number).AsNoTracking().ToListAsync();
             var zonesQuery = _context.Zones.AsQueryable();
             if (FloorId.HasValue)
@@ -69,6 +90,32 @@ public class IndexModel : PageModel
                 Name = GetShortAmenityName(a.Name)
             }).ToList();
             AmenityList = new SelectList(amenityOptions, "Id", "Name", AmenityId);
+
+            DateTime checkStart;
+            DateTime checkEnd;
+
+            if (FilterDate.HasValue && FilterStartTime.HasValue && FilterEndTime.HasValue && FilterEndTime > FilterStartTime)
+            {
+                checkStart = FilterDate.Value.Date.Add(FilterStartTime.Value);
+                checkEnd = FilterDate.Value.Date.Add(FilterEndTime.Value);
+            }
+            else if (FilterDate.HasValue)
+            {
+                checkStart = FilterDate.Value.Date;
+                checkEnd = FilterDate.Value.Date.AddDays(1);
+            }
+            else
+            {
+                checkStart = DateTime.Now;
+                checkEnd = DateTime.Now.AddMinutes(1);
+            }
+
+            var activeStatusIds = new[] { 1, 2, 3 };
+            OccupiedWorkspaceIds = (await _context.Bookings
+                .Where(b => activeStatusIds.Contains(b.StatusId) && checkStart < b.EndsAt && checkEnd > b.StartsAt)
+                .Select(b => b.WorkspaceId)
+                .Distinct()
+                .ToListAsync()).ToHashSet();
 
             var query = _context.Workspaces
                 .Include(w => w.Zone)
@@ -98,9 +145,30 @@ public class IndexModel : PageModel
                 query = query.Where(w => w.WorkspaceAmenities.Any(wa => wa.AmenityId == AmenityId.Value));
             }
 
+            if (!string.IsNullOrWhiteSpace(SearchTerm))
+            {
+                var term = SearchTerm.Trim().ToLower();
+                query = query.Where(w =>
+                    w.Number.ToLower().Contains(term) ||
+                    w.WorkspaceType.Name.ToLower().Contains(term) ||
+                    w.Zone.Name.ToLower().Contains(term) ||
+                    (w.Description != null && w.Description.ToLower().Contains(term)));
+            }
+
+            if (OnlyAvailable)
+            {
+                query = query.Where(w => w.IsActive && !OccupiedWorkspaceIds.Contains(w.Id));
+            }
+
+            query = SortOrder switch
+            {
+                "price_asc" => query.OrderBy(w => w.WorkspaceType.PricePerHour).ThenBy(w => w.Number),
+                "price_desc" => query.OrderByDescending(w => w.WorkspaceType.PricePerHour).ThenBy(w => w.Number),
+                "number_asc" => query.OrderBy(w => w.Number),
+                _ => query.OrderBy(w => w.Zone.Floor.Number).ThenBy(w => w.Number)
+            };
+
             Workspaces = await query
-                .OrderBy(w => w.Zone.Floor.Number)
-                .ThenBy(w => w.Number)
                 .AsNoTracking()
                 .ToListAsync();
         }

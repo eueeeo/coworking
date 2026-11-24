@@ -71,9 +71,9 @@ try:
             ]
             res = subprocess.run(cmd, capture_output=True, timeout=15)
             if os.path.exists(shot_file) and os.path.getsize(shot_file) > 1000:
-                print(f"  ✓ {page_name:<16} рендеринг OK (скриншот {os.path.getsize(shot_file)} байт)")
+                print(f"  [OK] {page_name:<16} рендеринг OK (скриншот {os.path.getsize(shot_file)} байт)")
             else:
-                print(f"  ✗ {page_name:<16} ошибка рендеринга")
+                print(f"  [X] {page_name:<16} ошибка рендеринга")
                 all_passed = False
 
     print("\n=======================================================")

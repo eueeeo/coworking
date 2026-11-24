@@ -232,4 +232,50 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }
+
+    public async Task<int> SyncBookingStatusesAsync(CancellationToken cancellationToken = default)
+    {
+        var now = DateTime.Now;
+
+        var expiredBookings = await Bookings
+            .Where(b => b.EndsAt <= now && (b.StatusId == 1 || b.StatusId == 2 || b.StatusId == 3))
+            .ToListAsync(cancellationToken);
+
+        var activatedBookings = await Bookings
+            .Where(b => b.StartsAt <= now && b.EndsAt > now && b.StatusId == 2)
+            .ToListAsync(cancellationToken);
+
+        if (!expiredBookings.Any() && !activatedBookings.Any())
+        {
+            return 0;
+        }
+
+        foreach (var b in expiredBookings)
+        {
+            b.StatusId = 4;
+            BookingStatusHistories.Add(new BookingStatusHistory
+            {
+                BookingId = b.Id,
+                NewStatusId = 4,
+                UserId = b.UserId,
+                ChangedAt = DateTime.UtcNow,
+                Comment = "Автоматическое завершение по окончании периода аренды"
+            });
+        }
+
+        foreach (var b in activatedBookings)
+        {
+            b.StatusId = 3;
+            BookingStatusHistories.Add(new BookingStatusHistory
+            {
+                BookingId = b.Id,
+                NewStatusId = 3,
+                UserId = b.UserId,
+                ChangedAt = DateTime.UtcNow,
+                Comment = "Автоматическая активация по наступлению времени аренды"
+            });
+        }
+
+        return await SaveChangesAsync(cancellationToken);
+    }
 }

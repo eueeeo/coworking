@@ -24,8 +24,12 @@
             <input asp-for="DateTo" type="date" class="form-control" />
         </div>
         <div class="col-md-4 d-flex gap-2">
-            <button type="submit" class="btn-ink flex-fill">Сформировать отчет</button>
-            <a asp-page="/Admin/Reports/Index" class="btn-outline-ink">Текущий месяц</a>
+            <button type="submit" class="btn-ink flex-fill">Сформировать</button>
+            <a asp-page="/Admin/Reports/Index" asp-page-handler="ExportCsv"
+               asp-route-dateFrom="@Model.DateFrom?.ToString("yyyy-MM-dd")"
+               asp-route-dateTo="@Model.DateTo?.ToString("yyyy-MM-dd")"
+               class="btn-outline-ink">Экспорт CSV</a>
+            <a asp-page="/Admin/Reports/Index" class="btn-outline-ink">Сброс</a>
         </div>
     </form>
 </div>
